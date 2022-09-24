@@ -15,7 +15,7 @@ typedef enum
   STATUS_ERROR = -1,
 } STATUS;
 
-    
+
 #ifdef __cplusplus
 }
 #endif
