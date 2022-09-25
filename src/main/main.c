@@ -24,4 +24,11 @@ void app_main(void)
 
   ser_lcd_write_line(1, " TATA");
   ser_lcd_write_line(0, "TUTU-->");
+
+  thread_msleep(2000);
+
+  ser_lcd_cursor_on();
+  thread_msleep(2000);
+  ser_lcd_blink_on();
+
 }

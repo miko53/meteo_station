@@ -14,6 +14,13 @@ extern STATUS ser_lcd_write(char* string);
 extern STATUS ser_lcd_set_cursor(uint8_t row, uint8_t col);
 extern STATUS ser_lcd_write_line(uint32_t noLine, char* string);
 extern STATUS ser_lcd_clear_screen(void);
+extern STATUS ser_lcd_home(void);
+extern STATUS ser_lcd_display_on(void);
+extern STATUS ser_lcd_display_off(void);
+extern STATUS ser_lcd_cursor_on(void);
+extern STATUS ser_lcd_cursor_off(void);
+extern STATUS ser_lcd_blink_on(void);
+extern STATUS ser_lcd_blink_off(void);
 
 #ifdef __cplusplus
 }
