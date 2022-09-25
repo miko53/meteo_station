@@ -21,6 +21,14 @@ extern STATUS ser_lcd_cursor_on(void);
 extern STATUS ser_lcd_cursor_off(void);
 extern STATUS ser_lcd_blink_on(void);
 extern STATUS ser_lcd_blink_off(void);
+extern STATUS ser_lcd_scroll_left(uint8_t count);
+extern STATUS ser_lcd_scroll_right(uint8_t count);
+extern STATUS ser_lcd_set_fast_backlight(uint8_t r, uint8_t g, uint8_t b);
+extern STATUS ser_lcd_system_msg_on(void);
+extern STATUS ser_lcd_system_msg_off(void);
+extern STATUS ser_lcd_autoscroll_on(void);
+extern STATUS ser_lcd_autoscroll_off(void);
+extern STATUS ser_lcd_set_contrast(uint8_t constrast);
 
 #ifdef __cplusplus
 }

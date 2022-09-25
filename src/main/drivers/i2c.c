@@ -71,7 +71,7 @@ STATUS i2c_write(i2c_id id, uint8_t i2c_address, uint8_t* buffer, uint32_t size)
   s = i2c_master_write_to_device(id, i2c_address, buffer, size, OS_SEC_TO_TICK(I2C_TIMEOUT_SEC));
   if (s != ESP_OK)
   {
-    log_info_print("i2c_write to address %.2x failed (%d)\n", i2c_address, s);
+    log_info_print("i2c_write to address 0x%.2x failed (0x%x)\n", i2c_address, s);
     status = STATUS_ERROR;
   }
 
@@ -87,7 +87,7 @@ STATUS i2c_read(i2c_id id, uint8_t i2c_address, uint8_t* buffer, uint32_t size)
   s = i2c_master_read_from_device(id, i2c_address, buffer, size, OS_SEC_TO_TICK(I2C_TIMEOUT_SEC));
   if (s != ESP_OK)
   {
-    log_info_print("i2c_write to address %.2x failed (%d)\n", i2c_address, s);
+    log_info_print("i2c_write to address 0x%.2x failed (0x%x)\n", i2c_address, s);
     status = STATUS_ERROR;
   }
 

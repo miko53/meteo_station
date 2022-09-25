@@ -21,6 +21,11 @@
 #define SER_LCD_CURSOR_SHIFT                        (0x10)
 #define SER_LCD_SET_DDRAM_ADDR                      (0x80)
 
+//CURSOR_SHIFT
+#define SER_LCD_DISPLAY_MOVE                        (0x08)
+#define SER_LCD_MOVE_RIGHT                          (0x04)
+#define SER_LCD_MOVE_LEFT                           (0x00)
+
 //Display ctrl
 #define SER_LCD_BLINK_ON                            (0x01)
 #define SER_LCD_CURSOR_ON                           (0x02)
@@ -74,6 +79,7 @@ STATUS ser_lcd_init(void)
   status = ser_lcd_transmit_command(SER_LCD_SPECIAL_COMMAND, SER_LCD_ENTRY_MODE_SET | ser_lcd_state.displayMode);
   ser_lcd_clear_screen();
   thread_msleep(30);
+  status = ser_lcd_set_contrast(0);
   status = ser_lcd_set_backlight(255, 255, 255);
 
   //status = STATUS_ERROR;
@@ -97,6 +103,23 @@ STATUS ser_lcd_set_backlight(uint8_t r, uint8_t g, uint8_t b)
   ser_lcd_state.displayControl |= SER_LCD_DISPLAY_ON;
   s = ser_lcd_transmit_command(SER_LCD_SPECIAL_COMMAND, SER_LCD_DISPLAY_CONTROL | ser_lcd_state.displayControl);
 
+  thread_msleep(50);
+  return s;
+}
+
+STATUS ser_lcd_set_fast_backlight(uint8_t r, uint8_t g, uint8_t b)
+{
+  STATUS s;
+  uint8_t buffer[5];
+  buffer[0] = SER_LCD_SETTING_COMMAND;
+  buffer[1] = SER_LCD_SET_RGB_COMMAND;
+  buffer[2] = r;
+  buffer[3] = g;
+  buffer[4] = b;
+
+  s = i2c_write(SER_LCD_I2C_ID, SER_LCD_I2C_ADDRESS, buffer, 5);
+
+  thread_msleep(10);
   return s;
 }
 
@@ -114,7 +137,6 @@ STATUS ser_lcd_write_screen(char* string)
   s = i2c_write(SER_LCD_I2C_ID, SER_LCD_I2C_ADDRESS, (uint8_t*) string, strlen(string));
   return s;
 }
-
 
 STATUS ser_lcd_write_line(uint32_t noLine, char* string)
 {
@@ -200,6 +222,65 @@ STATUS ser_lcd_blink_off()
   return s;
 }
 
+STATUS ser_lcd_system_msg_on(void)
+{
+  STATUS s;
+  s = ser_lcd_transmit_command(SER_LCD_SETTING_COMMAND, SER_LCD_ENABLE_SYSTEM_MESSAGE_DISPLAY);
+  return s;
+}
+
+STATUS ser_lcd_system_msg_off(void)
+{
+  STATUS s;
+  s = ser_lcd_transmit_command(SER_LCD_SETTING_COMMAND, SER_LCD_DISABLE_SYSTEM_MESSAGE_DISPLAY);
+  return s;
+}
+
+STATUS ser_lcd_autoscroll_on(void)
+{
+  STATUS s;
+  ser_lcd_state.displayMode |= SER_LCD_ENTRY_SHIFT_INCREMENT;
+  s = ser_lcd_transmit_command(SER_LCD_SPECIAL_COMMAND, SER_LCD_ENTRY_MODE_SET | ser_lcd_state.displayMode);
+  return s;
+}
+
+STATUS ser_lcd_autoscroll_off(void)
+{
+  STATUS s;
+  ser_lcd_state.displayMode &= ~SER_LCD_ENTRY_SHIFT_INCREMENT;
+  s = ser_lcd_transmit_command(SER_LCD_SPECIAL_COMMAND, SER_LCD_ENTRY_MODE_SET | ser_lcd_state.displayMode);
+  return s;
+}
+
+STATUS ser_lcd_scroll_left(uint8_t count)
+{
+  STATUS s;
+  s = STATUS_OK;
+  for (uint32_t i = 0; ((i < count) && (s == STATUS_OK)); i++)
+    s = ser_lcd_transmit_command(SER_LCD_SPECIAL_COMMAND, SER_LCD_CURSOR_SHIFT | SER_LCD_DISPLAY_MOVE | SER_LCD_MOVE_LEFT);
+  return s;
+}
+
+STATUS ser_lcd_scroll_right(uint8_t count)
+{
+  STATUS s;
+  s = STATUS_OK;
+  for (uint32_t i = 0; ((i < count) && (s == STATUS_OK)); i++)
+    s = ser_lcd_transmit_command(SER_LCD_SPECIAL_COMMAND, SER_LCD_CURSOR_SHIFT | SER_LCD_DISPLAY_MOVE | SER_LCD_MOVE_RIGHT);
+  return s;
+}
+
+STATUS ser_lcd_set_contrast(uint8_t constrast)
+{
+  STATUS s;
+  uint8_t buffer[3];
+  buffer[0] = SER_LCD_SETTING_COMMAND;
+  buffer[1] = SER_LCD_CONTRAST_COMMAND;
+  buffer[2] = constrast;
+  s = i2c_write(SER_LCD_I2C_ID, SER_LCD_I2C_ADDRESS, buffer, 3);
+  thread_msleep(10);
+  return s;
+}
 
 static STATUS ser_lcd_transmit_command(uint8_t command, uint8_t data)
 {
@@ -211,4 +292,3 @@ static STATUS ser_lcd_transmit_command(uint8_t command, uint8_t data)
   s = i2c_write(SER_LCD_I2C_ID, SER_LCD_I2C_ADDRESS, buffer, 2);
   return s;
 }
-
