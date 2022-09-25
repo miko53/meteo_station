@@ -12,6 +12,9 @@ typedef enum
 } i2c_id;
 
 extern STATUS i2c_init(void);
+extern STATUS i2c_read(i2c_id id, uint8_t i2c_address, uint8_t* buffer, uint32_t size);
+extern STATUS i2c_write(i2c_id id, uint8_t i2c_address, uint8_t* buffer, uint32_t size);
+
 
 #ifdef __cplusplus
 }

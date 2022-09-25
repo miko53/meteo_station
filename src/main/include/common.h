@@ -5,15 +5,23 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum
 {
   STATUS_OK = 0,
   STATUS_ERROR = -1,
 } STATUS;
+
+#ifndef MIN
+#define MIN(a,b)      ((a)<(b))?(a):(b)
+#endif /* MIN */
+
+#ifndef MAX
+#define MAX(a,b)      ((a)>(b))?(a):(b)
+#endif /* MIN */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #ifdef __cplusplus
