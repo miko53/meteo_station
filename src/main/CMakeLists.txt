@@ -5,6 +5,7 @@ SET(APP_SOURCE main.c
                drivers/pcf_8523.c 
                drivers/ser_lcd.c
                drivers/io.c
+               button.c
                )
 SET(APP_INCLUDE_DIR include)
 

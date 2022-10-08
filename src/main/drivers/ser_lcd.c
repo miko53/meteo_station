@@ -5,7 +5,7 @@
 #include "drivers/i2c.h"
 #include "os/os.h"
 
-#define SER_LCD_POWER_GPIO                          (32)
+#define SER_LCD_GPIO_POWER                          (32)
 #define SER_LCD_I2C_ID                              (I2C_LCD_ID)
 #define SER_LCD_I2C_ADDRESS                         (0x72)
 
@@ -68,7 +68,7 @@ STATUS ser_lcd_init(void)
 {
   STATUS status;
 
-  status = io_configure_output(SER_LCD_POWER_GPIO, true);
+  status = io_configure_output(SER_LCD_GPIO_POWER, true);
   thread_msleep(2000);
 
   ser_lcd_state.displayControl = SER_LCD_DISPLAY_ON | SER_LCD_CURSOR_OFF | SER_LCD_BLINK_OFF;

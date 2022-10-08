@@ -19,6 +19,8 @@ typedef enum
 #define MAX(a,b)      ((a)>(b))?(a):(b)
 #endif /* MIN */
 
+#define UNUSED(x)     ((void)x)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

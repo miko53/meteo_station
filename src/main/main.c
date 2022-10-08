@@ -4,14 +4,30 @@
 #include "drivers/i2c.h"
 #include "drivers/ser_lcd.h"
 #include "os/os.h"
+#include "drivers/io.h"
+#include "button.h"
+
+static void test_lcd(void);
 
 void app_main(void)
 {
   STATUS s;
+
+  io_init();
+
   s = i2c_init();
   log_info_print("status s=%d\n", s);
   s = ser_lcd_init();
   log_info_print("status s=%d\n", s);
+  s = button_init();
+  log_info_print("status s=%d\n", s);
+
+
+  test_lcd();
+}
+
+void test_lcd()
+{
   fprintf(stdout, "Hello World\n");
 
   ser_lcd_write_screen("METEO STATION   "
