@@ -8,6 +8,7 @@
 #include "button.h"
 
 static void test_lcd(void);
+static void test_button(void);
 
 void app_main(void)
 {
@@ -22,9 +23,48 @@ void app_main(void)
   s = button_init();
   log_info_print("status s=%d\n", s);
 
-
+  test_button();
   test_lcd();
 }
+
+void button_cmd_handler(key_event evt)
+{
+  printf("button cmd evt %d\n", evt);
+}
+
+void button_plus_handler(key_event evt)
+{
+  printf("button plus evt %d\n", evt);
+}
+void button_minus_handler(key_event evt)
+{
+  printf("button minus evt %d\n", evt);
+}
+
+
+void test_button()
+{
+  STATUS s;
+  s = button_install_handler(BUTTON_CMD, KEY_PRESSED, button_cmd_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_CMD, KEY_RELEASED, button_cmd_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_CMD, KEY_LONG_PRESS, button_cmd_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_MINUS, KEY_PRESSED, button_minus_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_MINUS, KEY_RELEASED, button_minus_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_MINUS, KEY_LONG_PRESS, button_minus_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_PLUS, KEY_PRESSED, button_plus_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_PLUS, KEY_RELEASED, button_plus_handler);
+  assert(s == STATUS_OK);
+  s = button_install_handler(BUTTON_PLUS, KEY_LONG_PRESS, button_plus_handler);
+  assert(s == STATUS_OK);
+}
+
 
 void test_lcd()
 {

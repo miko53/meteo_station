@@ -2,27 +2,10 @@
 #include "drivers/io.h"
 #include "os/os.h"
 
-#define BUTTON_GPIO_INPUT_CMD    (18)
-#define BUTTON_GPIO_INPUT_MINUS  (10)
-#define BUTTON_GPIO_INPUT_PLUS   (9)
-
-typedef enum
-{
-  BUTTON_CMD,
-  BUTTON_MINUS,
-  BUTTON_PLUS,
-  BUTTON_NB_MAX
-} button_id;
-
-typedef enum
-{
-  KEY_PRESSED,
-  KEY_RELEASED,
-  KEY_LONG_PRESS
-} key_event;
-
-
-static QueueHandle_t button_event = NULL;
+#define BUTTON_LONG_PRESS_DURATION        OS_SEC_TO_TICK(2)
+#define BUTTON_GPIO_INPUT_CMD                          (18)
+#define BUTTON_GPIO_INPUT_MINUS                        (10)
+#define BUTTON_GPIO_INPUT_PLUS                          (9)
 
 typedef struct
 {
@@ -30,14 +13,13 @@ typedef struct
   button_id button_id;
 } button_msg_evt;
 
-static void IRAM_ATTR gpio_isr_handler(void* arg);
-static void button_event_task(void* arg);
-
 typedef struct
 {
   key_event state;
   TickType_t last_pressed_time;
-  //TODO handle
+  button_cb_handler key_pressed_handler;
+  button_cb_handler key_released_handler;
+  button_cb_handler key_long_press_handler;
 } button_t;
 
 typedef struct
@@ -53,12 +35,20 @@ const button_gpio_t button_gpio[BUTTON_NB_MAX] =
   {.gpio_id = BUTTON_GPIO_INPUT_PLUS, .button_id = BUTTON_PLUS },
 };
 
-button_t button_state[BUTTON_NB_MAX];
+static QueueHandle_t button_event = NULL;
+static button_t button_state[BUTTON_NB_MAX];
+
+static void IRAM_ATTR gpio_isr_handler(void* arg);
+static void button_event_task(void* arg);
 
 STATUS button_init(void)
 {
   STATUS s;
   uint64_t gpio_mask;
+
+  for (uint32_t i = 0; i < BUTTON_NB_MAX; i++)
+    button_state[i].state = KEY_RELEASED;
+
   gpio_mask = (1ULL << BUTTON_GPIO_INPUT_CMD) | (1ULL << BUTTON_GPIO_INPUT_MINUS) | (1ULL << BUTTON_GPIO_INPUT_PLUS);
   s = io_configure_inputs(GPIO_INTR_ANYEDGE, gpio_mask);
 
@@ -76,6 +66,7 @@ static void gpio_isr_handler(void* arg)
 {
   button_msg_evt evt;
   button_gpio_t* pButtonDef = (button_gpio_t*) arg;
+
   evt.button_id =  pButtonDef->button_id;
   if (gpio_get_level(pButtonDef->gpio_id) == 1)
     evt.state = KEY_PRESSED;
@@ -85,31 +76,87 @@ static void gpio_isr_handler(void* arg)
   xQueueSendFromISR(button_event, &evt, NULL);
 }
 
+STATUS button_install_handler(button_id buttonId, key_event event, button_cb_handler button_callback)
+{
+  STATUS s;
+  s = STATUS_OK;
+  if ((buttonId < BUTTON_NB_MAX) && (button_callback != NULL))
+  {
+    switch (event)
+    {
+      case KEY_PRESSED:
+        button_state[buttonId].key_pressed_handler = button_callback;
+        break;
+
+      case KEY_LONG_PRESS:
+        button_state[buttonId].key_long_press_handler = button_callback;
+        break;
+
+      case KEY_RELEASED:
+        button_state[buttonId].key_released_handler = button_callback;
+        break;
+
+      default:
+        s = STATUS_ERROR;
+        break;
+    }
+  }
+  else
+    s = STATUS_ERROR;
+  return s;
+}
+
 
 static void button_event_task(void* arg)
 {
   UNUSED(arg);
-  static int counter;
+  //   static int counter;
   button_msg_evt evt;
   TickType_t delay;
 
-  delay = portMAX_DELAY;
+  delay = OS_WAIT_FOREVER;
   for (;;)
   {
     if (xQueueReceive(button_event, &evt, delay))
     {
-      printf("BUTTON[%d] nb = %d (%s)\n", evt.button_id, counter++,
-             evt.state == KEY_PRESSED ? "KEY_PRESSED" : "KEY_RELEASED");
-      if (evt.state == KEY_PRESSED)
-        delay = OS_SEC_TO_TICK(2);
-      else
-        delay = portMAX_DELAY;
+      button_state[evt.button_id].last_pressed_time = tick_get();
+      button_state[evt.button_id].state = evt.state;
+      //       printf("BUTTON[%d] nb = %d tick = %d, (%s)\n", evt.button_id, counter++, button_state[evt.button_id].last_pressed_time,
+      //              evt.state == KEY_PRESSED ? "KEY_PRESSED" : "KEY_RELEASED");
+
+      if ((button_state[evt.button_id].state == KEY_PRESSED) && (button_state[evt.button_id].key_pressed_handler != NULL))
+        button_state[evt.button_id].key_pressed_handler(KEY_PRESSED);
+      else if ((button_state[evt.button_id].state == KEY_RELEASED)
+               && (button_state[evt.button_id].key_released_handler != NULL))
+        button_state[evt.button_id].key_released_handler(KEY_RELEASED);
+
+      delay = OS_WAIT_FOREVER;
+      for (uint32_t i = 0; i < BUTTON_NB_MAX; i++)
+      {
+        if (evt.state == KEY_PRESSED)
+        {
+          delay = BUTTON_LONG_PRESS_DURATION;
+          break;
+        }
+      }
     }
     else
     {
-      printf("LONG PRESS\n");
+      TickType_t currentTick = tick_get();
+      for (uint32_t i = 0; i < BUTTON_NB_MAX; i++)
+      {
+        if (button_state[i].state == KEY_PRESSED)
+        {
+          TickType_t delta = currentTick - button_state[i].last_pressed_time;
+          if (delta >= BUTTON_LONG_PRESS_DURATION)
+          {
+            //             printf("BUTTON[%d] LONG_PRESS\n", i);
+            if (button_state[i].key_long_press_handler != NULL)
+              button_state[i].key_long_press_handler(KEY_LONG_PRESS);
+          }
+        }
+      }
     }
-
   }
 }
 

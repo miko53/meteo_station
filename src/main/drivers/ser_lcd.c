@@ -69,7 +69,7 @@ STATUS ser_lcd_init(void)
   STATUS status;
 
   status = io_configure_output(SER_LCD_GPIO_POWER, true);
-  thread_msleep(2000);
+  thread_msleep(2100);
 
   ser_lcd_state.displayControl = SER_LCD_DISPLAY_ON | SER_LCD_CURSOR_OFF | SER_LCD_BLINK_OFF;
   ser_lcd_state.displayMode = SER_LCD_ENTRY_LEFT | SER_LCD_ENTRY_SHIFT_DECREMENT;
