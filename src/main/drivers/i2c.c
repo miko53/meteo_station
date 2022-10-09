@@ -34,7 +34,7 @@ STATUS i2c_init(void)
     .scl_io_num = I2C_LCD_SCL_IO,
     .sda_pullup_en = GPIO_PULLUP_DISABLE,
     .scl_pullup_en = GPIO_PULLUP_DISABLE,
-    .master.clk_speed = I2C_LCD_FREQ_HZ,
+    .master.clk_speed = I2C_LCD_FREQ_HZ / 2,
   };
 
   i2c_config_t conf_sensor =

@@ -6,6 +6,7 @@
 #include "os/os.h"
 #include "drivers/io.h"
 #include "button.h"
+#include "menu.h"
 
 static void test_lcd(void);
 static void test_button(void);
@@ -23,8 +24,11 @@ void app_main(void)
   s = button_init();
   log_info_print("status s=%d\n", s);
 
-  test_button();
-  test_lcd();
+  s = menu_init();
+  log_info_print("status s=%d\n", s);
+
+  //test_button();
+  //test_lcd();
 }
 
 void button_cmd_handler(key_event evt)

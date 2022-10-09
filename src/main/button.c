@@ -2,7 +2,7 @@
 #include "drivers/io.h"
 #include "os/os.h"
 
-#define BUTTON_LONG_PRESS_DURATION        OS_SEC_TO_TICK(2)
+#define BUTTON_LONG_PRESS_DURATION        OS_MSEC_TO_TICK(1000)
 #define BUTTON_GPIO_INPUT_CMD                          (18)
 #define BUTTON_GPIO_INPUT_MINUS                        (10)
 #define BUTTON_GPIO_INPUT_PLUS                          (9)
