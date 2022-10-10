@@ -15,6 +15,7 @@ typedef enum
 {
   KEY_PRESSED,
   KEY_RELEASED,
+  KEY_CLICKED,
   KEY_LONG_PRESS
 } key_event;
 

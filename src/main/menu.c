@@ -189,8 +189,7 @@ STATUS menu_init(void)
   STATUS s;
   s = STATUS_OK;
 
-  s = button_install_handler(BUTTON_CMD, KEY_PRESSED, menu_cmd_handler);
-  s = button_install_handler(BUTTON_CMD, KEY_RELEASED, menu_cmd_handler);
+  s = button_install_handler(BUTTON_CMD, KEY_CLICKED, menu_cmd_handler);
   s = button_install_handler(BUTTON_CMD, KEY_LONG_PRESS, menu_cmd_handler);
   s = button_install_handler(BUTTON_MINUS, KEY_PRESSED, menu_minus_handler);
   s = button_install_handler(BUTTON_PLUS, KEY_PRESSED, menu_plus_handler);
@@ -202,7 +201,7 @@ void menu_cmd_handler(key_event evt)
 {
   switch (evt)
   {
-    case KEY_PRESSED:
+    case KEY_CLICKED:
       if (current_screen->on_cmd != NULL)
         current_screen->on_cmd(current_screen);
       break;
