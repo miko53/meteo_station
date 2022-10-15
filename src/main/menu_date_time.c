@@ -3,6 +3,7 @@
 #include "screen.h"
 #include "menu.h"
 #include "drivers/ser_lcd.h"
+#include "drivers/pcf_8523.h"
 
 #define DATE_STRING_SIZE        (16)
 #define TIME_STRING_SIZE        (16)
@@ -154,6 +155,11 @@ void menu_date_goto_modif_time_screen(screen_t* screen)
 void date_screen_on_enter(screen_t* screen)
 {
   date_context.state = DATE_IDLE;
+  struct tm currentDate;
+  pcf8523_get_date(&currentDate);
+  date_context.day = currentDate.tm_mday;
+  date_context.month = currentDate.tm_mon;
+  date_context.year = currentDate.tm_year + 1900;
   fprintf(stdout, "read the DATE\n");
 }
 
@@ -181,6 +187,14 @@ void date_screen_on_cmd(screen_t* screen)
       ser_lcd_cursor_off();
       ser_lcd_blink_off();
       fprintf(stdout, "set the DATE\n");
+      {
+        struct tm currentDate;
+        pcf8523_get_date(&currentDate);
+        currentDate.tm_mday = date_context.day;
+        currentDate.tm_mon = date_context.month;
+        currentDate.tm_year = date_context.year - 1900;
+        pcf8523_set_date(&currentDate);
+      }
       break;
 
     case CHANGE_DAY:
@@ -283,6 +297,14 @@ void time_screen_on_cmd(screen_t* screen)
       ser_lcd_cursor_off();
       ser_lcd_blink_off();
       fprintf(stdout, "set the TIME\n");
+      {
+        struct tm currentDate;
+        pcf8523_get_date(&currentDate);
+        currentDate.tm_sec = time_context.second;
+        currentDate.tm_min = time_context.minute;
+        currentDate.tm_hour = time_context.hour;
+        pcf8523_set_date(&currentDate);
+      }
       break;
 
     case CHANGE_HOUR:
@@ -312,6 +334,12 @@ void time_screen_display(screen_t* screen)
 void time_screen_on_enter(screen_t* screen)
 {
   time_context.state = DATE_IDLE;
+  struct tm currentDate;
+
+  pcf8523_get_date(&currentDate);
+  time_context.hour = currentDate.tm_hour;
+  time_context.minute = currentDate.tm_min;
+  time_context.second = currentDate.tm_sec;
   fprintf(stdout, "read the TIME\n");
 }
 

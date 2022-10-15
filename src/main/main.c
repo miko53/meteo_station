@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "drivers/i2c.h"
 #include "drivers/ser_lcd.h"
+#include "drivers/pcf_8523.h"
 #include "os/os.h"
 #include "drivers/io.h"
 #include "button.h"
@@ -11,6 +12,19 @@
 
 static void test_lcd(void);
 static void test_button(void);
+static void test_rtc(void);
+
+void dump_date(struct tm* pDate)
+{
+  fprintf(stdout, "%.2d/%.2d/%.4d %.2d:%.2d:%.2d (day = %d)\n",
+          pDate->tm_mday,
+          pDate->tm_mon,
+          pDate->tm_year + 1900,
+          pDate->tm_hour,
+          pDate->tm_min,
+          pDate->tm_sec,
+          pDate->tm_wday);
+}
 
 void app_main(void)
 {
@@ -31,6 +45,7 @@ void app_main(void)
   s = menu_init();
   log_info_print("menu status s=%d\n", s);
 
+  //test_rtc();
   //test_button();
   //test_lcd();
 }
@@ -124,6 +139,25 @@ void test_lcd()
   }
   ser_lcd_set_contrast(0);
   //ser_lcd_set_fast_backlight(128, 0, 128);
-
-
 }
+
+void test_rtc()
+{
+  pcf_8523_init();
+
+  struct tm date;
+  date.tm_sec = 0;
+  date.tm_min = 26;
+  date.tm_hour = 23;
+  date.tm_mday = 15;
+  date.tm_mon = 10;
+  date.tm_year = 122;
+  //pcf8523_set_date(&date);
+
+  pcf8523_get_date(&date);
+
+  fprintf(stdout, "bat low status = %d\n", pcf8523_isBattLow());
+
+  dump_date(&date);
+}
+
