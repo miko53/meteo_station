@@ -7,6 +7,7 @@
 #include "drivers/io.h"
 #include "button.h"
 #include "menu.h"
+#include "screen.h"
 
 static void test_lcd(void);
 static void test_button(void);
@@ -18,14 +19,17 @@ void app_main(void)
   io_init();
 
   s = i2c_init();
-  log_info_print("status s=%d\n", s);
+  log_info_print("i2c status s=%d\n", s);
   s = ser_lcd_init();
-  log_info_print("status s=%d\n", s);
+  log_info_print("ser_lcd status s=%d\n", s);
   s = button_init();
-  log_info_print("status s=%d\n", s);
+  log_info_print("button status s=%d\n", s);
+
+  s = screen_init();
+  log_info_print("screen status s=%d\n", s);
 
   s = menu_init();
-  log_info_print("status s=%d\n", s);
+  log_info_print("menu status s=%d\n", s);
 
   //test_button();
   //test_lcd();
