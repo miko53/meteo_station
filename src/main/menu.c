@@ -3,11 +3,15 @@
 #include "menu_date_time.h"
 #include "drivers/pcf_8523.h"
 #include "os/os.h"
+#include "drivers/sd_card.h"
 #include "log.h"
+#include <string.h>
 
 static void menu_display_date_time_screen(screen_t* pScreen);
 static void menu_enter_date_screen(screen_t* pScreen);
 static void menu_exit_date_screen(screen_t* pScreen);
+static void menu_display_sdcard_screen(screen_t* pScreen);
+static void menu_enter_sdcard_screen(screen_t* pScreen);
 
 screen_t splash_screen =
 {
@@ -33,10 +37,26 @@ screen_t date_time_display_screen =
   .line_1 = date_line,
   .line_2 = time_line,
   .display = screen_generic_display,
-  .on_plus = menu_display_config_screen,
+  .on_plus = menu_display_sdcard_screen,
   .on_minus = menu_display_splash_screen,
   .on_enter = menu_enter_date_screen,
   .on_exit = menu_exit_date_screen,
+};
+
+#define SDCARD_STRING_SIZE  (16)
+
+char sdcard_info_line1[SDCARD_STRING_SIZE];
+char sdcard_info_line2[SDCARD_STRING_SIZE];
+
+screen_t sd_card_infos =
+{
+  .line_1 = sdcard_info_line1,
+  .line_2 = sdcard_info_line2,
+  .display = screen_generic_display,
+  .on_plus = menu_display_config_screen,
+  .on_minus = menu_display_date_time_screen,
+  .on_enter = menu_enter_sdcard_screen,
+  .on_exit = NULL,
 };
 
 screen_t config_screen =
@@ -47,7 +67,7 @@ screen_t config_screen =
   .on_cmd = menu_display_date_screen,
   .on_cmd_long_press = NULL,
   .on_plus = menu_display_splash_screen,
-  .on_minus = menu_display_date_time_screen,
+  .on_minus = menu_display_sdcard_screen,
   .on_enter = NULL,
   .on_exit = NULL,
 };
@@ -75,7 +95,6 @@ void menu_display_date_time_screen(screen_t* pScreen)
 {
   screen_change_to(&date_time_display_screen);
 }
-
 
 void menu_enter_date_screen(screen_t* pScreen)
 {
@@ -112,3 +131,23 @@ void menu_exit_date_screen(screen_t* pScreen)
   xTimerDelete(date_time_handle, 0);
 }
 
+void menu_display_sdcard_screen(screen_t* pScreen)
+{
+  screen_change_to(&sd_card_infos);
+}
+
+void menu_enter_sdcard_screen(screen_t* pScreen)
+{
+  sd_cart_infos_t sdInfos;
+  STATUS s;
+  s = sd_card_get_infos(&sdInfos);
+  if (s == STATUS_OK)
+  {
+    strncpy(sdcard_info_line1, "SD-CARD: OK", SDCARD_STRING_SIZE - 1);
+    snprintf(sdcard_info_line2, SDCARD_STRING_SIZE, "CAPA: %llu MB", sdInfos.capacity);
+  }
+  else
+  {
+    strncpy(sdcard_info_line1, "SD-CARD: FAILED", SDCARD_STRING_SIZE);
+  }
+}

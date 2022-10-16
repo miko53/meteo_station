@@ -3,6 +3,7 @@
 #include "esp_vfs_fat.h"
 #include "log.h"
 #include "sdmmc_cmd.h"
+#include "driver/sdmmc_defs.h"
 
 #define PIN_NUM_MISO      (13)
 #define PIN_NUM_MOSI      (15)
@@ -88,4 +89,23 @@ void sd_card_umount(void)
   if (sd_card_correctly_mounted)
     esp_vfs_fat_sdcard_unmount(sd_card_mount_point, sd_card_dev);
 }
+
+
+STATUS sd_card_get_infos(sd_cart_infos_t* pSdCardInfos)
+{
+  STATUS s;
+  s = STATUS_ERROR;
+  if (sd_card_correctly_mounted)
+  {
+    pSdCardInfos->mounted = true;
+    pSdCardInfos->capacity = ((uint64_t) sd_card_dev->csd.capacity) * sd_card_dev->csd.sector_size / (1024 * 1024);
+    pSdCardInfos->type = (sd_card_dev->ocr & SD_OCR_SDHC_CAP) ? "SDHC/SDXC" : "SDSC";
+    pSdCardInfos->name = sd_card_dev->cid.name;
+    s = STATUS_OK;
+  }
+
+  return s;
+}
+
+
 
