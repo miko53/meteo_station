@@ -33,6 +33,13 @@ void screen_change_to(screen_t* screen)
   screen->display(current_screen);
 }
 
+void screen_refresh(void)
+{
+  if (current_screen != NULL)
+    current_screen->display(current_screen);
+}
+
+
 void screen_generic_display(screen_t* screen)
 {
   ser_lcd_write_line(0, screen->line_1);

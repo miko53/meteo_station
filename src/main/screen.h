@@ -21,5 +21,6 @@ typedef struct screen_def_t screen_t;
 extern STATUS screen_init(void);
 extern void screen_generic_display(screen_t* screen);
 extern void screen_change_to(screen_t* screen);
+extern void screen_refresh(void);
 
 #endif /* __SCREEN_H__ */

@@ -143,7 +143,7 @@ void test_lcd()
 
 void test_rtc()
 {
-  pcf_8523_init();
+  //pcf_8523_init();
 
   struct tm date;
   date.tm_sec = 0;

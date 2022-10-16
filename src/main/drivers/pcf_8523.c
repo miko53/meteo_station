@@ -18,19 +18,19 @@ static uint8_t bcd2bin(uint8_t bcdValue);
 static uint8_t bin2bcd(uint8_t binValue);
 
 
-STATUS pcf_8523_init(void)
-{
-  STATUS status;
-  status = STATUS_OK;
-
-  fprintf(stdout, "CTR1 = 0x%x\n", pcf8523_read_reg(PCF8523_CTRL1_REG));
-  fprintf(stdout, "CTR2 = 0x%x\n", pcf8523_read_reg(PCF8523_CTRL2_REG));
-  fprintf(stdout, "CTR3 = 0x%x\n", pcf8523_read_reg(PCF8523_CTRL3_REG));
-  fprintf(stdout, "STATUS = 0x%x\n", pcf8523_read_reg(PCF8523_STATUS_REG));
-
-  pcf8523_set_switchOverInStandardMode();
-  return status;
-}
+// STATUS pcf_8523_init(void)
+// {
+//   STATUS status;
+//   status = STATUS_OK;
+//
+//   fprintf(stdout, "CTR1 = 0x%x\n", pcf8523_read_reg(PCF8523_CTRL1_REG));
+//   fprintf(stdout, "CTR2 = 0x%x\n", pcf8523_read_reg(PCF8523_CTRL2_REG));
+//   fprintf(stdout, "CTR3 = 0x%x\n", pcf8523_read_reg(PCF8523_CTRL3_REG));
+//   fprintf(stdout, "STATUS = 0x%x\n", pcf8523_read_reg(PCF8523_STATUS_REG));
+//
+//   pcf8523_set_switchOverInStandardMode();
+//   return status;
+// }
 
 static void pcf8523_set_switchOverInStandardMode(void)
 {

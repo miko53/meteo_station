@@ -10,6 +10,7 @@ extern "C" {
 
 extern STATUS menu_init(void);
 extern void menu_display_config_screen(screen_t* screen);
+extern void menu_display_splash_screen(screen_t* screen);
 
 
 #ifdef __cplusplus
