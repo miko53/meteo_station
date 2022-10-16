@@ -4,6 +4,7 @@ SET(APP_SOURCE main.c
                drivers/i2c.c 
                drivers/pcf_8523.c 
                drivers/ser_lcd.c
+               drivers/sd_card.c
                drivers/io.c
                button.c
                screen.c

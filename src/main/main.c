@@ -4,6 +4,7 @@
 #include "drivers/i2c.h"
 #include "drivers/ser_lcd.h"
 #include "drivers/pcf_8523.h"
+#include "drivers/sd_card.h"
 #include "os/os.h"
 #include "drivers/io.h"
 #include "button.h"
@@ -44,6 +45,9 @@ void app_main(void)
 
   s = menu_init();
   log_info_print("menu status s=%d\n", s);
+
+  s = sd_card_init("/sdcard");
+  log_info_print("sdcard init s=%d\n", s);
 
   //test_rtc();
   //test_button();
