@@ -3,6 +3,8 @@
 #include "drivers/pcf_8523.h"
 #include "log.h"
 #include <stdio.h>
+#include <string.h>
+#include "../libs.h"
 
 #define PCF8523_I2C_ADDR           (0x68)
 #define PCF8523_CTRL1_REG             (0)
@@ -18,8 +20,28 @@ static uint8_t bcd2bin(uint8_t bcdValue);
 static uint8_t bin2bcd(uint8_t binValue);
 
 
-// STATUS pcf_8523_init(void)
-// {
+STATUS pcf_8523_init(void)
+{
+  bool b = pcf8523_hasLostPower();
+
+  struct tm dateTime;
+  fprintf(stdout, "has Lost power = %d\n", b);
+
+  if (b == true)
+  {
+    dateTime.tm_hour = 8;
+    dateTime.tm_min = 0;
+    dateTime.tm_sec = 0;
+    dateTime.tm_mon = 0;
+    dateTime.tm_mday = 1;
+    dateTime.tm_year = 122;
+    pcf8523_set_date(&dateTime);
+  }
+
+  pcf8523_get_date(&dateTime);
+  dump_date(&dateTime);
+  return STATUS_OK;
+}
 //   STATUS status;
 //   status = STATUS_OK;
 //
@@ -80,7 +102,7 @@ STATUS pcf8523_set_date(struct tm* pDateTime)
   buffer[3] = bin2bcd(pDateTime->tm_hour);
   buffer[4] = bin2bcd(pDateTime->tm_mday);
   buffer[5] = bin2bcd(pDateTime->tm_wday);
-  buffer[6] = bin2bcd(pDateTime->tm_mon);
+  buffer[6] = bin2bcd(pDateTime->tm_mon + 1);
   buffer[7] = bin2bcd(pDateTime->tm_year - 100);
 
   s = i2c_write(I2C_SENSOR_ID, PCF8523_I2C_ADDR, buffer, 8);
@@ -93,6 +115,8 @@ STATUS pcf8523_get_date(struct tm* pDateTime)
   STATUS s;
   uint8_t buffer[7];
   uint8_t second_reg = PCF8523_SECOND_REG;
+  memset(pDateTime, 0, sizeof(struct tm));
+
   s = i2c_write(I2C_SENSOR_ID, PCF8523_I2C_ADDR, &second_reg, 1);
   s |= i2c_read(I2C_SENSOR_ID, PCF8523_I2C_ADDR, buffer, 7);
   if (s == STATUS_OK)
@@ -102,7 +126,7 @@ STATUS pcf8523_get_date(struct tm* pDateTime)
     pDateTime->tm_hour = bcd2bin(buffer[2]);
     pDateTime->tm_mday = bcd2bin(buffer[3]);
     pDateTime->tm_wday = bcd2bin(buffer[4]);
-    pDateTime->tm_mon = bcd2bin(buffer[5]);
+    pDateTime->tm_mon = bcd2bin(buffer[5]) - 1;
     pDateTime->tm_year = bcd2bin(buffer[6]) + 100;
   }
 

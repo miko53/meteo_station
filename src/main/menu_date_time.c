@@ -158,7 +158,7 @@ void date_screen_on_enter(screen_t* screen)
   struct tm currentDate;
   pcf8523_get_date(&currentDate);
   date_context.day = currentDate.tm_mday;
-  date_context.month = currentDate.tm_mon;
+  date_context.month = currentDate.tm_mon + 1;
   date_context.year = currentDate.tm_year + 1900;
   fprintf(stdout, "read the DATE\n");
 }
@@ -191,8 +191,8 @@ void date_screen_on_cmd(screen_t* screen)
         struct tm currentDate;
         pcf8523_get_date(&currentDate);
         currentDate.tm_mday = date_context.day;
-        currentDate.tm_mon = date_context.month;
-        currentDate.tm_year = date_context.year - 1900;
+        currentDate.tm_mon = date_context.month - 1;
+        currentDate.tm_year = date_context.year;
         pcf8523_set_date(&currentDate);
       }
       break;

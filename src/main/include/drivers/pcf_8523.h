@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-// extern STATUS pcf_8523_init(void);
+extern STATUS pcf_8523_init(void);
 extern bool pcf8523_hasLostPower(void);
 extern bool pcf8523_isBattLow(void);
 extern STATUS pcf8523_set_date(struct tm* pDateTime);

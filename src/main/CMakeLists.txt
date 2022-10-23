@@ -10,6 +10,9 @@ SET(APP_SOURCE main.c
                screen.c
                menu.c
                menu_date_time.c
+               filelog.c
+               libs.c
+#               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
 

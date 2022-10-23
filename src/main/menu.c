@@ -118,7 +118,7 @@ void date_time_refresh_fun( TimerHandle_t xTimer )
   UNUSED(xTimer);
   struct tm currentDate;
   pcf8523_get_date(&currentDate);
-  snprintf(date_line, DATE_STRING_SIZE, "   %.2d/%.2d/%.4d", currentDate.tm_mday, currentDate.tm_mon,
+  snprintf(date_line, DATE_STRING_SIZE, "   %.2d/%.2d/%.4d", currentDate.tm_mday, currentDate.tm_mon + 1,
            currentDate.tm_year + 1900);
   snprintf(time_line, TIME_STRING_SIZE, "    %.2d:%.2d:%.2d", currentDate.tm_hour, currentDate.tm_min,
            currentDate.tm_sec);
