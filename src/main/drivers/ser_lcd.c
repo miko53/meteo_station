@@ -142,9 +142,13 @@ STATUS ser_lcd_write_line(uint32_t noLine, char* string)
 {
   STATUS s;
   s = ser_lcd_set_cursor(noLine, 0);
-  s = ser_lcd_write("                ");
-  s = ser_lcd_set_cursor(noLine, 0);
-  s = ser_lcd_write(string);
+  s |= ser_lcd_write("                ");
+  if ((s == STATUS_OK) && (*string != '\0'))
+  {
+    s |= ser_lcd_set_cursor(noLine, 0);
+    s |= ser_lcd_write(string);
+  }
+
   return s;
 }
 
