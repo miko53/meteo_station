@@ -13,14 +13,11 @@
 
 #define FILELOG_DEFAULT_PERMISSION      (0775)
 #define FILELOG_SIZE_MAX                (256)
+#define FILELOG_NB_MAX_MSG              (5)
 
 static QueueHandle_t filelog_msgHandle = NULL;
 static TaskHandle_t filelog_taskHandle = NULL;
-typedef struct
-{
-  uint32_t msgType;
-  char* data;
-} filelog_msg;
+static QueueHandle_t filelog_msgAllocatedHandle = NULL;
 
 static void filelog_task(void* arg);
 static FILE* filelog_prepare_and_create_file(void);
@@ -29,15 +26,24 @@ static FILE* filelog_create_file(char* filename);
 static STATUS filelog_create_cascaded_folder(char* filename);
 static void filelog_remove_filename(char* abspath);
 static STATUS filelog_create_folder(char* path);
+static STATUS filelog_pre_allocate_msg(QueueHandle_t* msgReserveQueue);
 
 STATUS filelog_init(void)
 {
   STATUS s;
   s = STATUS_OK;
 
-  filelog_msgHandle = xQueueCreate(5, sizeof(filelog_msg));
+  filelog_msgHandle = xQueueCreate(FILELOG_NB_MAX_MSG, sizeof(filelog_msg*));
   if (filelog_msgHandle == NULL)
     s = STATUS_ERROR;
+
+  filelog_msgAllocatedHandle = xQueueCreate(FILELOG_NB_MAX_MSG, sizeof(filelog_msg*));
+  if (filelog_msgAllocatedHandle == NULL)
+    s = STATUS_ERROR;
+  else
+  {
+    s = filelog_pre_allocate_msg(&filelog_msgAllocatedHandle);
+  }
 
   if (s == STATUS_OK)
   {
@@ -49,10 +55,60 @@ STATUS filelog_init(void)
   return s;
 }
 
-void filelog_task(void* arg)
+STATUS filelog_pre_allocate_msg(QueueHandle_t* msgReserveQueue)
 {
-  filelog_msg msg;
+  STATUS s;
+  BaseType_t rc;
+  filelog_msg* pMsg;
+  s = STATUS_OK;
+
+  for (uint32_t i = 0; ((i < FILELOG_NB_MAX_MSG) && (s == STATUS_OK)); i++)
+  {
+    pMsg = calloc(1, sizeof(filelog_msg));
+    if (pMsg != NULL)
+    {
+      rc = xQueueSend(*msgReserveQueue, &pMsg, 0);
+      assert(rc == pdTRUE);
+    }
+    else
+    {
+      log_info_print("Unable to allocate msg (%d)", i);
+      s = STATUS_ERROR;
+      break;
+    }
+  }
+
+  return s;
+}
+
+filelog_msg* filelog_allocate_msg()
+{
+  BaseType_t rc;
+  filelog_msg* pMsg = NULL;
+  rc = xQueueReceive(filelog_msgAllocatedHandle, &pMsg, 0);
+  if (rc != pdTRUE)
+    pMsg = NULL;
+  return pMsg;
+}
+
+STATUS filelog_write(filelog_msg* pData)
+{
+  STATUS s;
+  BaseType_t rc;
+  s = STATUS_ERROR;
+  rc = xQueueSend(filelog_msgHandle, &pData, 0);
+  if (rc == pdTRUE)
+    s = STATUS_OK;
+
+  return s;
+}
+
+
+static void filelog_task(void* arg)
+{
+  filelog_msg* msg;
   TickType_t delay;
+  BaseType_t rc;
   FILE* pCurrentFile = NULL;
 
   pCurrentFile = filelog_prepare_and_create_file();
@@ -61,9 +117,11 @@ void filelog_task(void* arg)
 
   while (1)
   {
-    if (xQueueReceive(filelog_msgHandle, &msg, delay))
+    if (xQueueReceive(filelog_msgHandle, &msg, delay) == pdTRUE)
     {
-      log_dbg_print("filelog msg reception\n");
+      log_info_print("filelog msg reception\n");
+      rc = xQueueSend(filelog_msgAllocatedHandle, &msg, 0);
+      assert(rc == pdTRUE);
     }
   }
 

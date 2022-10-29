@@ -3,11 +3,21 @@
 
 #include "common.h"
 
+#define FILELOG_STR_SIZE_MAX            (256)
+
+typedef struct
+{
+  uint32_t msgType;
+  char data[FILELOG_STR_SIZE_MAX];
+} filelog_msg;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern STATUS filelog_init(void);
+extern filelog_msg* filelog_allocate_msg(void);
+extern STATUS filelog_write(filelog_msg* pData);
 
 #ifdef __cplusplus
 }

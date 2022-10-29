@@ -14,6 +14,7 @@
 #include "config.h"
 #include <sys/time.h>
 #include "libs.h"
+#include "ctrl.h"
 
 void app_main(void)
 {
@@ -54,4 +55,8 @@ void app_main(void)
 
   s = filelog_init();
   log_info_print("filelog status s=%d\n", s);
+
+  s = ctrl_init();
+  log_info_print("ctrl status s=%d\n", s);
+
 }

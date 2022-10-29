@@ -12,6 +12,7 @@ SET(APP_SOURCE main.c
                menu_date_time.c
                filelog.c
                libs.c
+               ctrl.c
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
