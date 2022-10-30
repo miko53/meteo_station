@@ -20,8 +20,9 @@ static TaskHandle_t filelog_taskHandle = NULL;
 static QueueHandle_t filelog_msgAllocatedHandle = NULL;
 
 static void filelog_task(void* arg);
-static FILE* filelog_prepare_and_create_file(void);
-static void filelog_build_filename(char* filename, uint32_t size);
+static FILE* filelog_prepare_and_create_file(struct tm* pDate);
+static bool filelog_date_has_changed(struct tm* pDate1, struct tm* pDate2);
+static void filelog_build_filename(struct tm* pDate, char* filename, uint32_t size);
 static FILE* filelog_create_file(char* filename);
 static STATUS filelog_create_cascaded_folder(char* filename);
 static void filelog_remove_filename(char* abspath);
@@ -103,37 +104,62 @@ STATUS filelog_write(filelog_msg* pData)
   return s;
 }
 
-
 static void filelog_task(void* arg)
 {
   filelog_msg* msg;
   TickType_t delay;
   BaseType_t rc;
   FILE* pCurrentFile = NULL;
+  struct tm newDate;
+  struct tm currentDate;
+  pcf8523_get_date(&currentDate);
 
-  pCurrentFile = filelog_prepare_and_create_file();
-
+  pCurrentFile = filelog_prepare_and_create_file(&currentDate);
   delay = OS_WAIT_FOREVER;
 
   while (1)
   {
     if (xQueueReceive(filelog_msgHandle, &msg, delay) == pdTRUE)
     {
-      log_info_print("filelog msg reception\n");
+      log_info_print("filelog msg reception '%s'\n", msg->data);
+      pcf8523_get_date(&newDate);
+      if (filelog_date_has_changed(&newDate, &currentDate))
+      {
+        fclose(pCurrentFile);
+        currentDate = newDate;
+        pCurrentFile = filelog_prepare_and_create_file(&currentDate);
+      }
+
+      if (pCurrentFile != NULL)
+      {
+        fputs(msg->data, pCurrentFile);
+        fflush( pCurrentFile);
+        fsync(fileno(pCurrentFile));
+      }
       rc = xQueueSend(filelog_msgAllocatedHandle, &msg, 0);
       assert(rc == pdTRUE);
     }
   }
-
 }
 
-static FILE* filelog_prepare_and_create_file(void)
+static bool filelog_date_has_changed(struct tm* pDate1, struct tm* pDate2)
+{
+  bool r;
+  r = true;
+  if ((pDate1->tm_year == pDate2->tm_year) &&
+      (pDate1->tm_mon == pDate2->tm_mon) &&
+      (pDate1->tm_wday == pDate2->tm_wday))
+    r = false;
+  return r;
+}
+
+static FILE* filelog_prepare_and_create_file(struct tm* pDate)
 {
   STATUS s;
   FILE* pCurrentFile = NULL;
   char filename[FILELOG_SIZE_MAX];
 
-  filelog_build_filename(filename, FILELOG_SIZE_MAX);
+  filelog_build_filename(pDate, filename, FILELOG_SIZE_MAX);
 
   pCurrentFile = filelog_create_file(filename);
   if (pCurrentFile == NULL)
@@ -147,12 +173,10 @@ static FILE* filelog_prepare_and_create_file(void)
 }
 
 
-static void filelog_build_filename(char* filename, uint32_t size)
+static void filelog_build_filename(struct tm* pDate, char* filename, uint32_t size)
 {
-  struct tm currentDate;
-  pcf8523_get_date(&currentDate);
-  snprintf(filename, size, "%s/%d/%.2d/%.2d.txt", SD_CARD_MOUNT_POINT, currentDate.tm_year + 1900, currentDate.tm_mon + 1,
-           currentDate.tm_wday);
+  snprintf(filename, size, "%s/%d/%.2d/%.2d.txt", SD_CARD_MOUNT_POINT, pDate->tm_year + 1900, pDate->tm_mon + 1,
+           pDate->tm_mday);
   //log_dbg_print("filename = %s", filename);
 }
 
@@ -162,7 +186,7 @@ static FILE* filelog_create_file(char* filename)
   FILE* f = fopen(filename, "a");
   if (f == NULL)
   {
-    //log_dbg_print("unable to create/open file\n");
+    //log_warning_print("unable to create/open file\n");
   }
   return f;
 }

@@ -31,6 +31,7 @@ static void ctrl_task(void* arg)
     pMsg = filelog_allocate_msg();
     if (pMsg != NULL)
     {
+      snprintf(pMsg->data, FILELOG_STR_SIZE_MAX - 1, "test %d\n", tick_get());
       s = filelog_write(pMsg);
       if (s != STATUS_OK)
         log_info_print("error trying to send msg\n");

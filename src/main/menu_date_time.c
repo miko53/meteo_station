@@ -192,7 +192,7 @@ void date_screen_on_cmd(screen_t* screen)
         pcf8523_get_date(&currentDate);
         currentDate.tm_mday = date_context.day;
         currentDate.tm_mon = date_context.month - 1;
-        currentDate.tm_year = date_context.year;
+        currentDate.tm_year = date_context.year - 1900;
         pcf8523_set_date(&currentDate);
       }
       break;
