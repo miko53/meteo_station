@@ -6,7 +6,7 @@
 
 #define RAINMETER_GPIO_INPUT                          (34)
 #define RAINMETER_WAIT_TIME                           (10)//  (15*60) //15 min
-#define RAINMETER_CONVERTER                           (0.2794)  // 1 pulse => 0.2794 mm
+#define RAINMETER_CONVERTER                           (0.3)  // 1 pulse => 0.3 mm
 
 static atomic_t rainmeter_count;
 static TimerHandle_t rainmeter_timer_handle;
@@ -54,7 +54,7 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
   UNUSED(xTimer);
   int32_t count = atomic_get(&rainmeter_count);
   atomic_set(&rainmeter_count, 0);
-  log_info_print("count = %d => %f\n", count, count * RAINMETER_CONVERTER);
+  log_info_print("count = %d => %f mm\n", count, count * RAINMETER_CONVERTER);
 }
 
 

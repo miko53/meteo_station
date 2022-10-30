@@ -14,6 +14,7 @@ SET(APP_SOURCE main.c
                libs.c
                ctrl.c
                rainmeter.c
+               anemometer.c
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
