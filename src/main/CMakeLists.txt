@@ -13,6 +13,7 @@ SET(APP_SOURCE main.c
                filelog.c
                libs.c
                ctrl.c
+               rainmeter.c
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
