@@ -22,17 +22,21 @@ STATUS rainmeter_init(void)
   rainmeter_count = 0;
   gpio_mask = (1ULL << RAINMETER_GPIO_INPUT);
   s = io_configure_inputs(GPIO_INTR_NEGEDGE, gpio_mask);
-  io_configure_input_isr(RAINMETER_GPIO_INPUT, GPIO_INTR_NEGEDGE, rainmeter_isr_handler, NULL);
+  if (s == STATUS_OK)
+  {
+    io_configure_input_isr(RAINMETER_GPIO_INPUT, GPIO_INTR_NEGEDGE, rainmeter_isr_handler, NULL);
 
-  rainmeter_timer_handle = xTimerCreate("rainmeter_count", OS_SEC_TO_TICK(RAINMETER_WAIT_TIME), pdTRUE, NULL,
-                                        rainmeter_do_calcul);
-  if (rainmeter_timer_handle == NULL)
-    s = STATUS_ERROR;
-  else
+    rainmeter_timer_handle = xTimerCreate("rainmeter_count", OS_SEC_TO_TICK(RAINMETER_WAIT_TIME), pdTRUE, NULL,
+                                          rainmeter_do_calcul);
+    if (rainmeter_timer_handle == NULL)
+      s = STATUS_ERROR;
+  }
+
+  if (s == STATUS_OK)
   {
     if ( xTimerStart(rainmeter_timer_handle, 0) != pdPASS )
     {
-      log_info_print("Timer start error");
+      log_dbg_print("Timer start error");
       s = STATUS_ERROR;
     }
   }
