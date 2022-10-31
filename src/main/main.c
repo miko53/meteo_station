@@ -5,6 +5,7 @@
 #include "drivers/ser_lcd.h"
 #include "drivers/pcf_8523.h"
 #include "drivers/sd_card.h"
+#include "drivers/analog.h"
 #include "os/os.h"
 #include "drivers/io.h"
 #include "button.h"
@@ -16,6 +17,7 @@
 #include "libs.h"
 #include "rainmeter.h"
 #include "anemometer.h"
+#include "winddir.h"
 #include "ctrl.h"
 
 void app_main(void)
@@ -23,6 +25,8 @@ void app_main(void)
   STATUS s;
 
   io_init();
+  analog_display_efuse_config();
+
   setenv("TZ", "CEST", 1);
   tzset();
 
@@ -66,4 +70,11 @@ void app_main(void)
 
   s = anemometer_init();
   log_info_print("anemometer status s=%d\n", s);
+
+  s = anemometer_init();
+  log_info_print("anemometer status s=%d\n", s);
+
+  s = winddir_init();
+  log_info_print("winddir status s=%d\n", s);
+
 }

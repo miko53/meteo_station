@@ -5,6 +5,7 @@ SET(APP_SOURCE main.c
                drivers/pcf_8523.c 
                drivers/ser_lcd.c
                drivers/sd_card.c
+               drivers/analog.c
                drivers/io.c
                button.c
                screen.c
@@ -15,6 +16,7 @@ SET(APP_SOURCE main.c
                ctrl.c
                rainmeter.c
                anemometer.c
+               winddir.c
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
