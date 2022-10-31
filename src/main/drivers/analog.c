@@ -198,7 +198,7 @@ uint32_t analog_do_conversion(void* handle)
     pAdcChars = &adc2_chars;
 
   voltage = esp_adc_cal_raw_to_voltage(adc_reading, pAdcChars);
-  log_info_print("Raw: %d\tVoltage: %dmV (0x%.4x)\n", adc_reading, voltage, voltage);
+  //log_info_print("Raw: %d\tVoltage: %dmV (0x%.4x)\n", adc_reading, voltage, voltage);
   return voltage;
 }
 

@@ -44,15 +44,15 @@ static void ctrl_display_data_reception(data_msg_t* pDataMsg)
     case TEMPERATURE:
       break;
     case RAIN:
-      log_dbg_print("RAIN %f mm", pDataMsg->value.f);
+      log_info_print("RAIN %f mm", pDataMsg->value.f);
       break;
 
     case WIND_DIR:
-      log_dbg_print("WIND_DIR %d ", pDataMsg->value.i);
+      log_info_print("WIND_DIR %d ", pDataMsg->value.i);
       break;
 
     case WIND_SPEED:
-      log_dbg_print("WIND_SPEED %f m/s", pDataMsg->value.f);
+      log_info_print("WIND_SPEED %f m/s", pDataMsg->value.f);
       break;
 
     default:
