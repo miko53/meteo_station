@@ -3,6 +3,7 @@
 #include "os.h"
 #include "atomic.h"
 #include "log.h"
+#include "data_defs.h"
 
 #define ANEMOMETER_GPIO_INPUT                          (38)
 #define ANEMOMETER_WAIT_TIME                           (10)
@@ -10,16 +11,20 @@
 
 static atomic_t anemometer_count;
 static TimerHandle_t anemometer_timer_handle;
+static QueueHandle_t ctrl_data_queue;
+
 static void IRAM_ATTR anemometer_isr_handler(void* arg);
 static void anemometer_do_calcul( TimerHandle_t xTimer );
 
-STATUS anemometer_init(void)
+STATUS anemometer_init(QueueHandle_t queueData)
 {
   STATUS s;
   uint64_t gpio_mask;
 
   s = STATUS_OK;
   anemometer_count = 0;
+  ctrl_data_queue = queueData;
+
   gpio_mask = (1ULL << ANEMOMETER_GPIO_INPUT);
   s = io_configure_inputs(GPIO_INTR_NEGEDGE, gpio_mask);
   if (s == STATUS_OK)
@@ -56,6 +61,14 @@ static void anemometer_do_calcul( TimerHandle_t xTimer )
   atomic_set(&anemometer_count, 0);
   log_info_print("count = %d => %f m/s (%f km/h)\n", count, count * ANEMOMETER_CONVERTER,
                  count * ANEMOMETER_CONVERTER * 3.6);
+
+  if (ctrl_data_queue != NULL)
+  {
+    data_msg_t msg;
+    msg.type = WIND_SPEED;
+    msg.container = FLOAT;
+    msg.value.f = count * ANEMOMETER_CONVERTER;
+    xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
+  }
+
 }
-
-

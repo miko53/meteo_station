@@ -1,6 +1,7 @@
 #include "button.h"
 #include "drivers/io.h"
 #include "os.h"
+#include "config.h"
 
 #define BUTTON_LONG_PRESS_DURATION        OS_MSEC_TO_TICK(1000)
 #define BUTTON_GPIO_INPUT_CMD                          (18)
@@ -58,7 +59,7 @@ STATUS button_init(void)
                          (void*) &button_gpio[BUTTON_MINUS]);
   io_configure_input_isr(BUTTON_GPIO_INPUT_PLUS, GPIO_INTR_ANYEDGE, gpio_isr_handler, (void*) &button_gpio[BUTTON_PLUS]);
   button_event = xQueueCreate(5, sizeof(button_msg_evt));
-  xTaskCreate(button_event_task, "button_event_task", 2048, NULL, configMAX_PRIORITIES - 10, NULL);
+  xTaskCreate(button_event_task, "button_event_task", BUTTON_THREAD_STACK_SIZE, NULL, BUTTON_THREAD_PRIORTY, NULL);
 
   return s;
 }

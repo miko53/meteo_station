@@ -3,6 +3,7 @@
 #include "os.h"
 #include "atomic.h"
 #include "log.h"
+#include "data_defs.h"
 
 #define RAINMETER_GPIO_INPUT                          (34)
 #define RAINMETER_WAIT_TIME                           (10)//  (15*60) //15 min
@@ -10,16 +11,20 @@
 
 static atomic_t rainmeter_count;
 static TimerHandle_t rainmeter_timer_handle;
+static QueueHandle_t ctrl_data_queue;
+
 static void IRAM_ATTR rainmeter_isr_handler(void* arg);
 static void rainmeter_do_calcul( TimerHandle_t xTimer );
 
-STATUS rainmeter_init(void)
+STATUS rainmeter_init(QueueHandle_t queueData)
 {
   STATUS s;
   uint64_t gpio_mask;
 
   s = STATUS_OK;
   rainmeter_count = 0;
+  ctrl_data_queue = queueData;
+
   gpio_mask = (1ULL << RAINMETER_GPIO_INPUT);
   s = io_configure_inputs(GPIO_INTR_NEGEDGE, gpio_mask);
   if (s == STATUS_OK)
@@ -55,6 +60,15 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
   int32_t count = atomic_get(&rainmeter_count);
   atomic_set(&rainmeter_count, 0);
   log_info_print("count = %d => %f mm\n", count, count * RAINMETER_CONVERTER);
+
+  if (ctrl_data_queue != NULL)
+  {
+    data_msg_t msg;
+    msg.type = RAIN;
+    msg.container = FLOAT;
+    msg.value.f = count * RAINMETER_CONVERTER;
+    xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
+  }
 }
 
 

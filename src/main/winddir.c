@@ -2,6 +2,7 @@
 #include "drivers/analog.h"
 #include "os.h"
 #include "log.h"
+#include "data_defs.h"
 
 #define WINDDIR_GPIO_INPUT     (37)
 
@@ -12,11 +13,15 @@
 
 static void* winddir_analog_handle;
 static TimerHandle_t winddir_timer_handle;
+static QueueHandle_t ctrl_data_queue;
+
 static void winddir_do_calcul( TimerHandle_t xTimer );
 
-STATUS winddir_init(void)
+STATUS winddir_init(QueueHandle_t queueData)
 {
   STATUS s;
+
+  ctrl_data_queue = queueData;
 
   s = analog_configure(WINDDIR_GPIO_INPUT, WINDDIR_WIDTH, WINDDIR_ATTEN, &winddir_analog_handle);
 
@@ -109,6 +114,14 @@ void winddir_do_calcul(TimerHandle_t xTimer)
     direction = O;
 
   print_direction(direction);
+  if (ctrl_data_queue != NULL)
+  {
+    data_msg_t msg;
+    msg.type = WIND_DIR;
+    msg.container = INTEGER_32;
+    msg.value.i = direction;
+    xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
+  }
 }
 
 

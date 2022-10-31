@@ -1,8 +1,17 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "os.h"
 
-#define SD_CARD_MOUNT_POINT       "/sdcard"
+#define SD_CARD_MOUNT_POINT        "/sdcard"
+
+#define CTRL_THREAD_PRIORITY       (configMAX_PRIORITIES - 10)
+#define BUTTON_THREAD_PRIORTY      (configMAX_PRIORITIES - 10)
+#define FILELOG_THREAD_PRIORITY    (configMAX_PRIORITIES - 15)
+
+#define CTRL_THREAD_STACK_SIZE     (4196)
+#define BUTTON_THREAD_STACK_SIZE   (2048)
+#define FILELOG_THREAD_STACK_SIZE  (4196)
 
 
 #ifdef __cplusplus

@@ -48,7 +48,8 @@ STATUS filelog_init(void)
 
   if (s == STATUS_OK)
   {
-    xTaskCreate(filelog_task, "filelog_task", 4196, NULL, configMAX_PRIORITIES - 15, &filelog_taskHandle);
+    xTaskCreate(filelog_task, "filelog_task", FILELOG_THREAD_STACK_SIZE, NULL, FILELOG_THREAD_PRIORITY,
+                &filelog_taskHandle);
     if (filelog_taskHandle == NULL)
       s = STATUS_ERROR;
   }

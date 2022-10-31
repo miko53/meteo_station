@@ -65,13 +65,15 @@ void app_main(void)
   s = ctrl_init();
   log_info_print("ctrl status s=%d\n", s);
 
-  s = rainmeter_init();
+  QueueHandle_t ctrDataQueue = ctrl_get_data_queue();
+
+  s = rainmeter_init(ctrDataQueue);
   log_info_print("rainmeter status s=%d\n", s);
 
-  s = anemometer_init();
+  s = anemometer_init(ctrDataQueue);
   log_info_print("anemometer status s=%d\n", s);
 
-  s = winddir_init();
+  s = winddir_init(ctrDataQueue);
   log_info_print("winddir status s=%d\n", s);
 
 }
