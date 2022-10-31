@@ -6,7 +6,7 @@
 
 #define ANEMOMETER_GPIO_INPUT                          (38)
 #define ANEMOMETER_WAIT_TIME                           (10)
-#define ANEMOMETER_CONVERTER                           ((0.33)/ANEMOMETER_WAIT_TIME)  // 1 pulse => 0.33 m/s
+#define ANEMOMETER_CONVERTER                           ((0.666666)/ANEMOMETER_WAIT_TIME)  // 1 pulse/s => 2.4km/h ==> 0.66 m/s
 
 static atomic_t anemometer_count;
 static TimerHandle_t anemometer_timer_handle;
