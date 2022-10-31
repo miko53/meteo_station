@@ -3,7 +3,7 @@
 #include "drivers/io.h"
 #include "drivers/ser_lcd.h"
 #include "drivers/i2c.h"
-#include "os/os.h"
+#include "os.h"
 
 #define SER_LCD_GPIO_POWER                          (32)
 #define SER_LCD_I2C_ID                              (I2C_LCD_ID)

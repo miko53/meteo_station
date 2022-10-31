@@ -1,5 +1,5 @@
 #include "ctrl.h"
-#include "os/os.h"
+#include "os.h"
 #include "filelog.h"
 #include "log.h"
 

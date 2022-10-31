@@ -6,7 +6,7 @@
 #include "drivers/pcf_8523.h"
 #include "drivers/sd_card.h"
 #include "drivers/analog.h"
-#include "os/os.h"
+#include "os.h"
 #include "drivers/io.h"
 #include "button.h"
 #include "menu.h"
@@ -67,9 +67,6 @@ void app_main(void)
 
   s = rainmeter_init();
   log_info_print("rainmeter status s=%d\n", s);
-
-  s = anemometer_init();
-  log_info_print("anemometer status s=%d\n", s);
 
   s = anemometer_init();
   log_info_print("anemometer status s=%d\n", s);

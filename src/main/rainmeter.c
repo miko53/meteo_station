@@ -1,7 +1,7 @@
 #include "rainmeter.h"
 #include "drivers/io.h"
-#include "os/os.h"
-#include "os/atomic.h"
+#include "os.h"
+#include "atomic.h"
 #include "log.h"
 
 #define RAINMETER_GPIO_INPUT                          (34)

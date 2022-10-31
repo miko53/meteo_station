@@ -3,7 +3,7 @@
 #include "drivers/pcf_8523.h"
 #include <stdio.h>
 #include <assert.h>
-#include "os/os.h"
+#include "os.h"
 #include "libs.h"
 
 void test_button();

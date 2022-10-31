@@ -1,6 +1,6 @@
 #include "winddir.h"
 #include "drivers/analog.h"
-#include "os/os.h"
+#include "os.h"
 #include "log.h"
 
 #define WINDDIR_GPIO_INPUT     (37)

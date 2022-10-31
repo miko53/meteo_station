@@ -2,7 +2,7 @@
 #include "drivers/ser_lcd.h"
 #include "menu_date_time.h"
 #include "drivers/pcf_8523.h"
-#include "os/os.h"
+#include "os.h"
 #include "drivers/sd_card.h"
 #include "log.h"
 #include <string.h>

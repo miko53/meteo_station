@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
-#include "os/os.h"
+#include "os.h"
 #include "config.h"
 #include <assert.h>
 

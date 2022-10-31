@@ -3,7 +3,7 @@
 #include "drivers/i2c.h"
 #include "driver/i2c.h"
 #include "log.h"
-#include "os/os.h"
+#include "os.h"
 
 #define I2C_LCD_SDA_IO              (25)
 #define I2C_LCD_SCL_IO              (26)
