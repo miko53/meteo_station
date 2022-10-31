@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "drivers/ser_lcd.h"
 #include "drivers/pcf_8523.h"
+#include "libs.h"
 
 #define DATE_STRING_SIZE        (16)
 #define TIME_STRING_SIZE        (16)
@@ -194,6 +195,7 @@ void date_screen_on_cmd(screen_t* screen)
         currentDate.tm_mon = date_context.month - 1;
         currentDate.tm_year = date_context.year - 1900;
         pcf8523_set_date(&currentDate);
+        date_set_localtime(&currentDate);
       }
       break;
 
@@ -304,6 +306,7 @@ void time_screen_on_cmd(screen_t* screen)
         currentDate.tm_min = time_context.minute;
         currentDate.tm_hour = time_context.hour;
         pcf8523_set_date(&currentDate);
+        date_set_localtime(&currentDate);
       }
       break;
 

@@ -3,8 +3,7 @@
 #include "filelog.h"
 #include "log.h"
 #include "data_defs.h"
-#include <time.h>
-#include <sys/time.h>
+#include "libs.h"
 
 #define CTRL_NB_MSG       (20)
 
@@ -61,44 +60,58 @@ static void ctrl_task(void* arg)
   }
 }
 
-void ctrl_get_time(struct tm* pDate)
+
+void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed,  data_msg_t* pData)
 {
-  struct timeval currentTime;
-  gettimeofday(&currentTime, NULL);
-  localtime_r(&currentTime.tv_sec, pDate);
+  char* typeDataStr;
+  switch (pData->type)
+  {
+    case RAIN:
+      typeDataStr = "rain";
+      break;
+
+    case WIND_DIR:
+      typeDataStr = "wind_dir";
+      break;
+
+    case WIND_SPEED:
+      typeDataStr = "wind_speed";
+      break;
+
+    default:
+      typeDataStr = "???";
+      break;
+  }
+
+  char computed;
+  if (isComputed)
+    computed = 'c';
+  else
+    computed = 'd';
+
+  struct tm dateTime;
+  date_get_localtime(&dateTime);
+
+  if (pData->container == INTEGER_32)
+  {
+    snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%d\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
+             dateTime.tm_sec, pData->value.i);
+  }
+  else
+  {
+    snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%f\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
+             dateTime.tm_sec, pData->value.f);
+  }
 }
 
 static void ctrl_log_data(data_msg_t* pDataMsg)
 {
   STATUS s;
-  struct tm dateTime;
   filelog_msg* pMsg;
   pMsg = filelog_allocate_msg();
   if (pMsg != NULL)
   {
-    ctrl_get_time(&dateTime);
-    switch (pDataMsg->type)
-    {
-      case RAIN:
-        snprintf(pMsg->data, FILELOG_STR_SIZE_MAX - 1, "d;rain;%.2d:%.2d:%.2d;%f\n", dateTime.tm_hour, dateTime.tm_min,
-                 dateTime.tm_sec, pDataMsg->value.f);
-        break;
-
-      case WIND_DIR:
-        snprintf(pMsg->data, FILELOG_STR_SIZE_MAX - 1, "d;wind_dir;%.2d:%.2d:%.2d;%d\n", dateTime.tm_hour, dateTime.tm_min,
-                 dateTime.tm_sec, pDataMsg->value.i);
-        break;
-
-      case WIND_SPEED:
-        snprintf(pMsg->data, FILELOG_STR_SIZE_MAX - 1, "d;wind_speed;%.2d:%.2d:%.2d;%f\n", dateTime.tm_hour, dateTime.tm_min,
-                 dateTime.tm_sec, pDataMsg->value.f);
-        break;
-
-      default:
-        pMsg->data[0] = '\0';
-        break;
-    }
-
+    ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, false, pDataMsg);
     s = filelog_write(pMsg);
     if (s != STATUS_OK)
       log_info_print("error trying to send msg\n");
@@ -107,7 +120,6 @@ static void ctrl_log_data(data_msg_t* pDataMsg)
   {
     log_info_print("error trying to allocate msg\n");
   }
-
 }
 
 static void ctrl_display_data_reception(data_msg_t* pDataMsg)

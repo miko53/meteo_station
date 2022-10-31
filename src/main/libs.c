@@ -1,6 +1,7 @@
-
 #include "libs.h"
 #include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
 
 void dump_date(struct tm* pDate)
 {
@@ -14,3 +15,18 @@ void dump_date(struct tm* pDate)
           pDate->tm_wday);
 }
 
+void date_get_localtime(struct tm* pDate)
+{
+  struct timeval currentTime;
+  gettimeofday(&currentTime, NULL);
+  localtime_r(&currentTime.tv_sec, pDate);
+}
+
+void date_set_localtime(struct tm* pDate)
+{
+  time_t t = mktime(pDate);
+  struct timeval tv;
+  tv.tv_sec = t;
+  tv.tv_usec = 0;
+  settimeofday(&tv, NULL);
+}

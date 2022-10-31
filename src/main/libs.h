@@ -8,6 +8,8 @@ extern "C" {
 #endif
 
 extern void dump_date(struct tm* pDate);
+extern void date_get_localtime(struct tm* pDate);
+extern void date_set_localtime(struct tm* pDate);
 
 #ifdef __cplusplus
 }

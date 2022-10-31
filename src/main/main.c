@@ -52,12 +52,7 @@ void app_main(void)
 
   struct tm dateTime;
   pcf8523_get_date(&dateTime);
-  dateTime.tm_mday = 1;
-  time_t t = mktime(&dateTime);
-  struct timeval tv;
-  tv.tv_sec = t;
-  tv.tv_usec = 0;
-  settimeofday(&tv, NULL);
+  date_set_localtime(&dateTime);
 
   s = filelog_init();
   log_info_print("filelog status s=%d\n", s);
