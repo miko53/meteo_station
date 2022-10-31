@@ -4,9 +4,8 @@
 #include "atomic.h"
 #include "log.h"
 #include "data_defs.h"
+#include "config.h"
 
-#define ANEMOMETER_GPIO_INPUT                          (38)
-#define ANEMOMETER_WAIT_TIME                           (10)
 #define ANEMOMETER_CONVERTER                           ((0.666666)/ANEMOMETER_WAIT_TIME)  // 1 pulse/s => 2.4km/h ==> 0.66 m/s
 
 static atomic_t anemometer_count;
@@ -59,8 +58,8 @@ static void anemometer_do_calcul( TimerHandle_t xTimer )
   UNUSED(xTimer);
   int32_t count = atomic_get(&anemometer_count);
   atomic_set(&anemometer_count, 0);
-  log_info_print("count = %d => %f m/s (%f km/h)\n", count, count * ANEMOMETER_CONVERTER,
-                 count * ANEMOMETER_CONVERTER * 3.6);
+  //log_info_print("count = %d => %f m/s (%f km/h)\n", count, count * ANEMOMETER_CONVERTER,
+  //               count * ANEMOMETER_CONVERTER * 3.6);
 
   if (ctrl_data_queue != NULL)
   {
@@ -70,5 +69,4 @@ static void anemometer_do_calcul( TimerHandle_t xTimer )
     msg.value.f = count * ANEMOMETER_CONVERTER;
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
-
 }

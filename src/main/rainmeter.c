@@ -4,9 +4,8 @@
 #include "atomic.h"
 #include "log.h"
 #include "data_defs.h"
+#include "config.h"
 
-#define RAINMETER_GPIO_INPUT                          (34)
-#define RAINMETER_WAIT_TIME                           (10)//  (15*60) //15 min
 #define RAINMETER_CONVERTER                           (0.3)  // 1 pulse => 0.3 mm
 
 static atomic_t rainmeter_count;
@@ -59,7 +58,7 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
   UNUSED(xTimer);
   int32_t count = atomic_get(&rainmeter_count);
   atomic_set(&rainmeter_count, 0);
-  log_info_print("count = %d => %f mm\n", count, count * RAINMETER_CONVERTER);
+  //log_info_print("count = %d => %f mm\n", count, count * RAINMETER_CONVERTER);
 
   if (ctrl_data_queue != NULL)
   {

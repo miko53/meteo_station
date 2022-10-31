@@ -3,13 +3,10 @@
 #include "os.h"
 #include "log.h"
 #include "data_defs.h"
-
-#define WINDDIR_GPIO_INPUT     (37)
+#include "config.h"
 
 #define WINDDIR_WIDTH         ADC_WIDTH_BIT_12
 #define WINDDIR_ATTEN         ADC_ATTEN_DB_11
-
-#define WINDDIR_WAIT_TIME     (1)
 
 static void* winddir_analog_handle;
 static TimerHandle_t winddir_timer_handle;
@@ -82,6 +79,42 @@ char* winddir_direction(winddir_direction_t dir)
   return r;
 }
 
+uint32_t winddir_get_angle(winddir_direction_t dir)
+{
+  uint32_t angle;
+  switch (dir)
+  {
+    case E:
+      angle = 90;
+      break;
+    case N:
+      angle = 0;
+      break;
+    case NE:
+      angle = 45;
+      break;
+    case NO:
+      angle = 315;
+      break;
+    case O:
+      angle = 270;
+      break;
+    case S:
+      angle = 180;
+      break;
+    case SE:
+      angle = 135;
+      break;
+    case SO:
+      angle = 225;
+      break;
+    default:
+      angle = 360;
+      break;
+  }
+  return angle;
+}
+
 void print_direction(winddir_direction_t dir)
 {
   log_info_print("Dir: %s", winddir_direction(dir));
@@ -93,7 +126,7 @@ void winddir_do_calcul(TimerHandle_t xTimer)
   winddir_direction_t direction;
   v = analog_do_conversion(winddir_analog_handle);
   v = v / 100;
-  log_dbg_print("v %d", v);
+  //log_dbg_print("v %d", v);
 
   direction = INVALID;
   if (v <= 3)
@@ -113,13 +146,13 @@ void winddir_do_calcul(TimerHandle_t xTimer)
   else if ((v > 28))
     direction = O;
 
-  print_direction(direction);
+  //print_direction(direction);
   if (ctrl_data_queue != NULL)
   {
     data_msg_t msg;
     msg.type = WIND_DIR;
     msg.container = INTEGER_32;
-    msg.value.i = direction;
+    msg.value.i = winddir_get_angle(direction);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }

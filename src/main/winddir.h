@@ -24,6 +24,8 @@ extern "C" {
 extern STATUS winddir_init(QueueHandle_t queueData);
 extern char* winddir_direction(winddir_direction_t dir);
 extern void print_direction(winddir_direction_t dir);
+extern uint32_t winddir_get_angle(winddir_direction_t dir);
+
 
 
 #ifdef __cplusplus

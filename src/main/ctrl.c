@@ -35,6 +35,30 @@ QueueHandle_t ctrl_get_data_queue()
   return ctrl_dataReception;
 }
 
+static void ctrl_display_data_reception(data_msg_t* pDataMsg)
+{
+  switch (pDataMsg->type)
+  {
+    case HUMIDITY:
+      break;
+    case TEMPERATURE:
+      break;
+    case RAIN:
+      log_dbg_print("RAIN %f mm", pDataMsg->value.f);
+      break;
+
+    case WIND_DIR:
+      log_dbg_print("WIND_DIR %d ", pDataMsg->value.i);
+      break;
+
+    case WIND_SPEED:
+      log_dbg_print("WIND_SPEED %f m/s", pDataMsg->value.f);
+      break;
+
+    default:
+      break;
+  }
+}
 
 static void ctrl_task(void* arg)
 {
@@ -49,12 +73,7 @@ static void ctrl_task(void* arg)
     if (rc == pdTRUE)
     {
       log_dbg_print("Data Reception");
-      log_dbg_print("msg type = %d", dataMsg.type);
-      if (dataMsg.container == INTEGER_32)
-        log_dbg_print("msg value = %d", dataMsg.value.i);
-      else
-        log_dbg_print("msg value = %f", dataMsg.value.f);
-
+      ctrl_display_data_reception(&dataMsg);
     }
     else
     {

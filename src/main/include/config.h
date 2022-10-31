@@ -13,6 +13,15 @@
 #define BUTTON_THREAD_STACK_SIZE   (2048)
 #define FILELOG_THREAD_STACK_SIZE  (4196)
 
+//gpio
+#define ANEMOMETER_GPIO_INPUT      (38)
+#define WINDDIR_GPIO_INPUT         (37)
+#define RAINMETER_GPIO_INPUT       (34)
+
+//in second
+#define ANEMOMETER_WAIT_TIME       (10)
+#define WINDDIR_WAIT_TIME          (10)
+#define RAINMETER_WAIT_TIME        (10) //  (15*60) //15 min
 
 #ifdef __cplusplus
 extern "C" {
