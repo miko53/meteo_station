@@ -57,6 +57,9 @@ typedef struct
 extern "C" {
 #endif
 
+extern STATUS data_ope_init(void);
+extern void data_ope_add(data_msg_t* pData);
+
 #ifdef __cplusplus
 }
 #endif

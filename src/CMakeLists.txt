@@ -4,5 +4,21 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.16)
 
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(meteo-station)
+if(UNIT_TEST)
+    project(meteo-station-tu)
+    set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+    message("UNIT_TEST activated")
+    find_program(MEMORYCHECK_COMMAND valgrind )
+    set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full" )
+    find_package(Check REQUIRED)
+    include_directories(${CHECK_INCLUDE_DIRS})
+    link_directories(${CHECK_LIBRARY_DIRS})
+    include (CTest)
+    enable_testing()
+    add_subdirectory(main)
+else()
+    include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+    project(meteo-station)
+endif()
+
+

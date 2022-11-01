@@ -1,4 +1,18 @@
 
+if(UNIT_TEST)
+include_directories(include)
+include_directories(.)
+add_executable(tu_data_test 
+                data_ope.c
+                tu/tu_data_ope.c
+               )
+
+target_link_libraries(tu_data_test ${CHECK_LIBRARIES} pthread)
+add_test(tu_data_test tu_data_test)
+
+
+else()
+
 SET(APP_SOURCE main.c 
                log.c
                drivers/i2c.c 
@@ -24,3 +38,4 @@ SET(APP_INCLUDE_DIR include)
 
 idf_component_register(SRCS ${APP_SOURCE}
                        INCLUDE_DIRS ${APP_INCLUDE_DIR})
+endif()

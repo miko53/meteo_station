@@ -1,8 +1,6 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#include "os.h"
-
 #define SD_CARD_MOUNT_POINT        "/sdcard"
 
 #define CTRL_THREAD_PRIORITY       (configMAX_PRIORITIES - 10)
