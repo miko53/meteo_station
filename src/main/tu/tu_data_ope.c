@@ -1,6 +1,7 @@
 
 #include <check.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "common.h"
 #include "data_ope.h"
 
@@ -14,6 +15,12 @@ START_TEST(test_data_ope_01)
   data.container = FLOAT;
   data.value.f = 5.2;
   data_ope_add(&data);
+
+  ck_assert(s == STATUS_OK);
+  variant r;
+  s = histogram_get(0, 0, &r);
+  ck_assert(s == STATUS_OK);
+  fprintf(stdout, "r = %f\n", r.f32);
 
   ck_assert(s == STATUS_OK);
 }

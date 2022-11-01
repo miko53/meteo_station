@@ -52,6 +52,12 @@ typedef struct
   bool bStoreInSD;
 } data_operation_t;
 
+typedef union
+{
+  float f32;
+  uint32_t i32;
+} variant;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,6 +65,7 @@ extern "C" {
 
 extern STATUS data_ope_init(void);
 extern void data_ope_add(data_msg_t* pData);
+extern STATUS histogram_get(uint32_t itemData, uint32_t index, variant* v);
 
 #ifdef __cplusplus
 }
