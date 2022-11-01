@@ -29,7 +29,6 @@ typedef struct
   data_v_t value;
 } data_msg_t;
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -17,6 +17,7 @@ SET(APP_SOURCE main.c
                rainmeter.c
                anemometer.c
                winddir.c
+               data_ope.c
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
