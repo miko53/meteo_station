@@ -37,7 +37,7 @@ typedef struct
   period_def type;
   union
   {
-    uint32_t period;
+    uint32_t period_sec;
     fixed_period_t f_period;
   };
 } period_t;
@@ -45,7 +45,7 @@ typedef struct
 typedef struct
 {
   data_type_t sensor;
-  uint32_t refresh_period;
+  uint32_t refresh_period_sec;
   period_t calcul_period;
   data_calcul operation;
   uint32_t history_depth;
@@ -63,9 +63,11 @@ typedef union
 extern "C" {
 #endif
 
-extern STATUS data_ope_init(void);
+extern STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList);
 extern void data_ope_add(data_msg_t* pData);
-extern STATUS histogram_get(uint32_t itemData, uint32_t index, variant* v);
+
+extern STATUS histogram_get(uint32_t histoIndex, uint32_t index, variant* v);
+extern int32_t histogram_nbItems(uint32_t histoIndex);
 
 #ifdef __cplusplus
 }

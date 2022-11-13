@@ -32,6 +32,7 @@ SET(APP_SOURCE main.c
                anemometer.c
                winddir.c
                data_ope.c
+               data_ope_config.c
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)
