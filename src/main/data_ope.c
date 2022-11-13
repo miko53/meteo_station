@@ -169,6 +169,8 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
       }
       else
       {
+        if (data_temp[index].nbData == 0)
+          data_temp[index].temp.f32 = 0;
         data_temp[index].temp.f32 += pData->value.f;
       }
       data_temp[index].nbData++;
