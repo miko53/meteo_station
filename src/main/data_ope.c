@@ -16,7 +16,8 @@ typedef struct
   variant temp;
   uint32_t nbData;
   histogram_t histo;
-  struct tm lastReceptionDate;
+  struct tm beginPeriodDate;
+  bool lastDateIsValid;
 } data_;
 
 static data_* data_temp;
@@ -145,27 +146,32 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
   {
     case FIXED_PERIOD:
       {
-        struct tm lastReceptionDate;
-        bool hasDiff;
-        int32_t diff;
-
-        data_ope_prepare_and_insert(index, pOperation, pData);
-        date_get_localtime(&lastReceptionDate);
-
-        if (data_temp[index].nbData > 1)
+        if (data_temp[index].lastDateIsValid == false)
         {
+          date_get_localtime(&data_temp[index].beginPeriodDate);
+          data_temp[index].lastDateIsValid = true;
+        }
+        else
+        {
+          struct tm currentDate;
+          bool hasDiff;
+          int32_t diff;
+
+          data_ope_prepare_and_insert(index, pOperation, pData);
+          date_get_localtime(&currentDate);
+
           switch (pOperation->calcul_period.f_period.unit)
           {
             case BY_HOUR:
-              hasDiff = data_ope_is_hour_diff(&lastReceptionDate, &data_temp[index].lastReceptionDate, &diff);
+              hasDiff = data_ope_is_hour_diff(&currentDate, &data_temp[index].beginPeriodDate, &diff);
               break;
 
             case BY_DAY:
-              hasDiff = data_ope_is_day_diff(&lastReceptionDate, &data_temp[index].lastReceptionDate, &diff);
+              hasDiff = data_ope_is_day_diff(&currentDate, &data_temp[index].beginPeriodDate, &diff);
               break;
 
             case BY_MONTH:
-              hasDiff = data_ope_is_month_diff(&lastReceptionDate, &data_temp[index].lastReceptionDate, &diff);
+              hasDiff = data_ope_is_month_diff(&currentDate, &data_temp[index].beginPeriodDate, &diff);
               break;
 
             default:
@@ -174,17 +180,16 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
 
           if ((hasDiff) && ((uint32_t) diff >= pOperation->calcul_period.f_period.period))
           {
-            fprintf(stdout, "diff detected (index = %d) do operation\n", index);
+            fprintf(stdout, "diff detected (index = %d) do operation on (%d nb Data)\n", index, data_temp[index].nbData);
             if (pOperation->operation == OPE_AVERAGE)
             {
               data_temp[index].temp.f32 /= data_temp[index].nbData;
             }
             data_temp[index].nbData = 0;
             histogram_insert(&data_temp[index].histo, data_temp[index].temp);
+            data_temp[index].beginPeriodDate = currentDate;
           }
         }
-
-        data_temp[index].lastReceptionDate = lastReceptionDate;
       }
       break;
 

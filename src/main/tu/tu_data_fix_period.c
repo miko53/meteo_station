@@ -217,9 +217,9 @@ START_TEST(test_localdate_update)
   ck_assert(currentDate.tm_mon == 2);
   ck_assert(currentDate.tm_year == 122);
 
-  localtime_display(&currentDate);
+  //localtime_display(&currentDate);
   localtime_add_day(&currentDate, 29);
-  localtime_display(&currentDate);
+  //localtime_display(&currentDate);
   ck_assert(currentDate.tm_sec == 15);
   ck_assert(currentDate.tm_min == 00);
   ck_assert(currentDate.tm_hour == 01);
@@ -234,9 +234,9 @@ START_TEST(test_localdate_update)
   currentDate.tm_mon = 2;
   currentDate.tm_year = 122;
 
-  localtime_display(&currentDate);
+  //localtime_display(&currentDate);
   localtime_add_day(&currentDate, 28);
-  localtime_display(&currentDate);
+  //localtime_display(&currentDate);
   ck_assert(currentDate.tm_sec == 15);
   ck_assert(currentDate.tm_min == 00);
   ck_assert(currentDate.tm_hour == 01);
@@ -250,9 +250,9 @@ START_TEST(test_localdate_update)
   currentDate.tm_mday = 3;
   currentDate.tm_mon = 2;
   currentDate.tm_year = 122;
-  localtime_display(&currentDate);
+  //localtime_display(&currentDate);
   localtime_add_day(&currentDate, 27);
-  localtime_display(&currentDate);
+  //localtime_display(&currentDate);
 
   ck_assert(currentDate.tm_sec == 15);
   ck_assert(currentDate.tm_min == 00);
@@ -272,10 +272,11 @@ static data_operation_t data_ope_config_list_test1[] =
   },
 };
 
-
 START_TEST(test_date_fp_one_hour)
 {
   STATUS s;
+  int32_t nbItemsHisto;
+
   s = data_ope_init(data_ope_config_list_test1, 1);
   ck_assert(s == STATUS_OK);
 
@@ -288,13 +289,215 @@ START_TEST(test_date_fp_one_hour)
   currentDate.tm_year = 122;
 
   tu_set_localtime(&currentDate);
+  localtime_display(&currentDate);
 
   data_msg_t data;
   data.type = RAIN;
   data.container = FLOAT;
   data.value.f = 10.0;
   data_ope_add(&data);
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 0);
 
+  localtime_add_min(&currentDate, 15);
+  tu_set_localtime(&currentDate);
+
+  data.type = RAIN;
+  data.container = FLOAT;
+  data.value.f = 15.0;
+  data_ope_add(&data);
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 0);
+
+  localtime_add_min(&currentDate, 15);
+  tu_set_localtime(&currentDate);
+
+  data.type = RAIN;
+  data.container = FLOAT;
+  data.value.f = 12.0;
+  data_ope_add(&data);
+
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 1);
+  variant r;
+  s = histogram_get(0, LAST_VALUE, &r);
+  ck_assert(s == STATUS_OK);
+
+  ck_assert_float_eq_tol(r.f32, 27.0, 0.1);
+
+  for (uint32_t i = 0; i < 4; i++)
+  {
+    localtime_add_min(&currentDate, 15);
+    tu_set_localtime(&currentDate);
+
+    data.type = RAIN;
+    data.container = FLOAT;
+    data.value.f = 12.0 + i;
+    data_ope_add(&data);
+  }
+
+  nbItemsHisto = histogram_nbItems(0);
+  s = histogram_get(0, LAST_VALUE, &r);
+  ck_assert(nbItemsHisto == 2);
+  fprintf(stdout, "value =%f\n", r.f32);
+  ck_assert_float_eq_tol(r.f32, 54.0, 0.1);
+
+}
+END_TEST
+
+static data_operation_t data_ope_config_list_test2[] =
+{
+  {
+    .sensor = WIND_SPEED, .refresh_period_sec = 10,
+    .calcul_period = { .type = FIXED_PERIOD, .f_period = {.period = 1, .unit = BY_DAY }},
+    .operation = OPE_AVERAGE, .history_depth = 5, .bStoreInSD = false
+  },
+};
+
+START_TEST(test_date_fp_one_day)
+{
+  STATUS s;
+  int32_t nbItemsHisto;
+  data_msg_t data;
+  variant r;
+
+  s = data_ope_init(data_ope_config_list_test2, 1);
+  ck_assert(s == STATUS_OK);
+
+  struct tm currentDate;
+  currentDate.tm_sec = 35;
+  currentDate.tm_min = 45;
+  currentDate.tm_hour = 16;
+  currentDate.tm_mday = 20;
+  currentDate.tm_mon = 3;
+  currentDate.tm_year = 123;
+
+  tu_set_localtime(&currentDate);
+  data.type = WIND_SPEED;
+  data.container = FLOAT;
+  data.value.f = 0.0; //first value is ignored used to take time reference
+  data_ope_add(&data);
+
+  for (uint32_t i = 0; i < 5; i++)
+  {
+    data.type = WIND_SPEED;
+    data.container = FLOAT;
+    data.value.f = 12.0 + i;
+    localtime_display(&currentDate);
+    data_ope_add(&data);
+
+    localtime_add_hour(&currentDate, 2);
+    tu_set_localtime(&currentDate);
+  }
+
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 1);
+  s = histogram_get(0, LAST_VALUE, &r);
+  ck_assert(s == STATUS_OK);
+  fprintf(stdout, "value =%f\n", r.f32);
+  ck_assert_float_eq_tol(r.f32, 14.0, 0.1);
+
+
+  for (uint32_t i = 0; i < 12; i++)
+  {
+    data.type = WIND_SPEED;
+    data.container = FLOAT;
+    data.value.f = 25.5 + i;
+    localtime_display(&currentDate);
+    data_ope_add(&data);
+
+    localtime_add_hour(&currentDate, 2);
+    tu_set_localtime(&currentDate);
+  }
+
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 2);
+  s = histogram_get(0, LAST_VALUE, &r);
+  ck_assert(s == STATUS_OK);
+  fprintf(stdout, "value =%f\n", r.f32);
+  ck_assert_float_eq_tol(r.f32, 31.0, 0.1);
+}
+END_TEST
+
+static data_operation_t data_ope_config_list_test3[] =
+{
+  {
+    .sensor = WIND_SPEED, .refresh_period_sec = 10,
+    .calcul_period = { .type = FIXED_PERIOD, .f_period = {.period = 2, .unit = BY_MONTH }},
+    .operation = OPE_MAX, .history_depth = 5, .bStoreInSD = false
+  },
+};
+
+START_TEST(test_date_fp_two_months)
+{
+  STATUS s;
+  int32_t nbItemsHisto;
+  data_msg_t data;
+  variant r;
+
+  s = data_ope_init(data_ope_config_list_test3, 1);
+  ck_assert(s == STATUS_OK);
+
+  struct tm currentDate;
+  currentDate.tm_sec = 00;
+  currentDate.tm_min = 00;
+  currentDate.tm_hour = 00;
+  currentDate.tm_mday = 1;
+  currentDate.tm_mon = 4;
+  currentDate.tm_year = 123;
+
+  tu_set_localtime(&currentDate);
+
+  for (uint32_t i = 0; i < 3; i++)
+  {
+    data.type = WIND_SPEED;
+    data.container = FLOAT;
+    data.value.f = 6.0 + i;
+    localtime_display(&currentDate);
+    data_ope_add(&data);
+
+    localtime_add_month(&currentDate, 1);
+    tu_set_localtime(&currentDate);
+  }
+
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 1);
+  s = histogram_get(0, LAST_VALUE, &r);
+  ck_assert(s == STATUS_OK);
+  fprintf(stdout, "value =%f\n", r.f32);
+  ck_assert_float_eq_tol(r.f32, 8.0, 0.1);
+
+
+  for (uint32_t i = 0; i < 6; i++)
+  {
+    data.type = WIND_SPEED;
+    data.container = FLOAT;
+    data.value.f = 25.5 + i;
+    localtime_display(&currentDate);
+    data_ope_add(&data);
+
+    localtime_add_month(&currentDate, 1);
+    tu_set_localtime(&currentDate);
+  }
+
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 4);
+  s = histogram_get(0, LAST_VALUE, &r);
+  ck_assert(s == STATUS_OK);
+  fprintf(stdout, "value =%f\n", r.f32);
+  ck_assert_float_eq_tol(r.f32, 30.5, 0.1);
+
+
+  //add an extra data to check no month diff
+  localtime_add_month(&currentDate, 1);
+  tu_set_localtime(&currentDate);
+  data_ope_add(&data);
+  localtime_add_day(&currentDate, 1);
+  tu_set_localtime(&currentDate);
+  data_ope_add(&data);
+
+  nbItemsHisto = histogram_nbItems(0);
+  ck_assert(nbItemsHisto == 5);
 
 }
 END_TEST
@@ -309,11 +512,8 @@ Suite* test_suite(void)
   suite_add_tcase(s, tc_core);
   tcase_add_test(tc_core, test_localdate_update);
   tcase_add_test(tc_core, test_date_fp_one_hour);
-  //   tcase_add_test(tc_core, test_data_ope_cumul_02);
-  //   tcase_add_test(tc_core, test_data_ope_avg_01);
-  //   tcase_add_test(tc_core, test_data_ope_min_01);
-  //   tcase_add_test(tc_core, test_data_ope_max_01);
-  //   tcase_add_test(tc_core, test_data_ope_robustness_1);
+  tcase_add_test(tc_core, test_date_fp_one_day);
+  tcase_add_test(tc_core, test_date_fp_two_months);
   return s;
 }
 
