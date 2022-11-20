@@ -253,13 +253,13 @@ START_TEST(test_localdate_update)
   localtime_display(&currentDate);
   localtime_add_day(&currentDate, 27);
   localtime_display(&currentDate);
+
   ck_assert(currentDate.tm_sec == 15);
   ck_assert(currentDate.tm_min == 00);
   ck_assert(currentDate.tm_hour == 01);
   ck_assert(currentDate.tm_mday == 30);
   ck_assert(currentDate.tm_mon == 3);
   ck_assert(currentDate.tm_year == 122);
-
 }
 END_TEST
 
