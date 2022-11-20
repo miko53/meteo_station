@@ -58,6 +58,7 @@ typedef union
   uint32_t i32;
 } variant;
 
+#define LAST_VALUE  (0)
 
 #ifdef __cplusplus
 extern "C" {

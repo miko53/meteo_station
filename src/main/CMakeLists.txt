@@ -10,6 +10,12 @@ add_executable(tu_data_test
 target_link_libraries(tu_data_test ${CHECK_LIBRARIES} pthread)
 add_test(tu_data_test tu_data_test)
 
+add_executable(tu_data_fix_period_test
+                data_ope.c
+                tu/tu_data_fix_period.c
+               )
+target_link_libraries(tu_data_fix_period_test ${CHECK_LIBRARIES} pthread)
+add_test(tu_data_fix_period_test tu_data_fix_period_test)
 
 else()
 

@@ -1,6 +1,7 @@
 #include "data_ope.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "libs.h"
 
 typedef struct
 {
@@ -10,18 +11,23 @@ typedef struct
   variant* datas;
 } histogram_t;
 
-
-
 typedef struct
 {
   variant temp;
   uint32_t nbData;
   histogram_t histo;
+  struct tm lastReceptionDate;
 } data_;
 
 static data_* data_temp;
 static data_operation_t* data_ope_list;
 static uint32_t data_ope_nbItems;
+
+static void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
+void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
+bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
+bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
+bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 
 STATUS histogram_init(histogram_t* h, uint32_t nbItems)
 {
@@ -84,8 +90,6 @@ int32_t histogram_nbItems(uint32_t histoIndex)
 }
 
 
-static void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
-
 STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList)
 {
   STATUS s;
@@ -140,43 +144,55 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
   switch (pOperation->calcul_period.type)
   {
     case FIXED_PERIOD:
+      {
+        struct tm lastReceptionDate;
+        bool hasDiff;
+        int32_t diff;
+
+        data_ope_prepare_and_insert(index, pOperation, pData);
+        date_get_localtime(&lastReceptionDate);
+
+        if (data_temp[index].nbData > 1)
+        {
+          switch (pOperation->calcul_period.f_period.unit)
+          {
+            case BY_HOUR:
+              hasDiff = data_ope_is_hour_diff(&lastReceptionDate, &data_temp[index].lastReceptionDate, &diff);
+              break;
+
+            case BY_DAY:
+              hasDiff = data_ope_is_day_diff(&lastReceptionDate, &data_temp[index].lastReceptionDate, &diff);
+              break;
+
+            case BY_MONTH:
+              hasDiff = data_ope_is_month_diff(&lastReceptionDate, &data_temp[index].lastReceptionDate, &diff);
+              break;
+
+            default:
+              break;
+          }
+
+          if ((hasDiff) && ((uint32_t) diff >= pOperation->calcul_period.f_period.period))
+          {
+            fprintf(stdout, "diff detected (index = %d) do operation\n", index);
+            if (pOperation->operation == OPE_AVERAGE)
+            {
+              data_temp[index].temp.f32 /= data_temp[index].nbData;
+            }
+            data_temp[index].nbData = 0;
+            histogram_insert(&data_temp[index].histo, data_temp[index].temp);
+          }
+        }
+
+        data_temp[index].lastReceptionDate = lastReceptionDate;
+      }
       break;
 
     case SLIDING_PERIOD:
-      if (pOperation->operation == OPE_MAX)
-      {
-        if (data_temp[index].nbData == 0)
-        {
-          data_temp[index].temp.f32 = pData->value.f;
-        }
-        else
-        {
-          if (pData->value.f > data_temp[index].temp.f32)
-            data_temp[index].temp.f32 = pData->value.f;
-        }
-      }
-      else if (pOperation->operation == OPE_MIN)
-      {
-        if (data_temp[index].nbData == 0)
-        {
-          data_temp[index].temp.f32 = pData->value.f;
-        }
-        else
-        {
-          if (pData->value.f < data_temp[index].temp.f32)
-            data_temp[index].temp.f32 = pData->value.f;
-        }
-      }
-      else
-      {
-        if (data_temp[index].nbData == 0)
-          data_temp[index].temp.f32 = 0;
-        data_temp[index].temp.f32 += pData->value.f;
-      }
-      data_temp[index].nbData++;
+      data_ope_prepare_and_insert(index, pOperation, pData);
 
       nbItems = pOperation->calcul_period.period_sec / pOperation->refresh_period_sec;
-      fprintf(stdout, "nbItems = %d\n", nbItems);
+      fprintf(stdout, "nbItems = %d, nbData = %d\n", nbItems, data_temp[index].nbData);
       if (data_temp[index].nbData >= nbItems)
       {
         fprintf(stdout, "do operation\n");
@@ -185,8 +201,78 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
           data_temp[index].temp.f32 /= nbItems;
         }
         data_temp[index].nbData = 0;
+
         histogram_insert(&data_temp[index].histo, data_temp[index].temp);
       }
       break;
   }
+}
+
+void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, data_msg_t* pData)
+{
+  if (pOperation->operation == OPE_MAX)
+  {
+    if (data_temp[index].nbData == 0)
+    {
+      data_temp[index].temp.f32 = pData->value.f;
+    }
+    else
+    {
+      if (pData->value.f > data_temp[index].temp.f32)
+        data_temp[index].temp.f32 = pData->value.f;
+    }
+  }
+  else if (pOperation->operation == OPE_MIN)
+  {
+    if (data_temp[index].nbData == 0)
+    {
+      data_temp[index].temp.f32 = pData->value.f;
+    }
+    else
+    {
+      if (pData->value.f < data_temp[index].temp.f32)
+        data_temp[index].temp.f32 = pData->value.f;
+    }
+  }
+  else
+  {
+    if (data_temp[index].nbData == 0)
+      data_temp[index].temp.f32 = 0;
+    data_temp[index].temp.f32 += pData->value.f;
+  }
+  data_temp[index].nbData++;
+}
+
+
+bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff)
+{
+  bool r = false;
+  *diff = newDate->tm_hour - previousDate->tm_hour;
+  if (*diff != 0)
+  {
+    r = true;
+  }
+  return r;
+}
+
+bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff)
+{
+  bool r = false;
+  *diff = newDate->tm_mday - previousDate->tm_mday;
+  if (*diff != 0)
+  {
+    r = true;
+  }
+  return r;
+}
+
+bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff)
+{
+  bool r = false;
+  *diff = newDate->tm_mon - previousDate->tm_mon;
+  if (*diff != 0)
+  {
+    r = true;
+  }
+  return r;
 }

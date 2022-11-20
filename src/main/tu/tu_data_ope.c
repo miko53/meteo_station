@@ -5,6 +5,13 @@
 #include "common.h"
 #include "config.h"
 #include "data_ope.h"
+#include "libs.h"
+
+void date_get_localtime(struct tm* pDate)
+{
+  UNUSED(pDate);
+  //not used for these test cases
+}
 
 static data_operation_t data_ope_config_list_test1[] =
 {
@@ -25,7 +32,6 @@ uint32_t get_tu_operation_nb_items_test_1(void)
   return sizeof(data_ope_config_list_test1) / sizeof(data_operation_t);
 }
 
-#define LAST_VALUE  (0)
 
 ///calcul de cumul avec 1 echantillon à chaque et test de l'historique sur une periode de 24
 START_TEST(test_data_ope_cumul_01)
