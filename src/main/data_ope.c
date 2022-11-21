@@ -11,6 +11,7 @@ typedef struct
   histogram_t histo;
   struct tm beginPeriodDate;
   bool lastDateIsValid;
+  bool activated;
 } data_;
 
 static data_* data_temp;
@@ -18,10 +19,10 @@ static data_operation_t* data_ope_list;
 static uint32_t data_ope_nbItems;
 
 static void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
-void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
-bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
-bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
-bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
+static void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
+static bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
+static bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
+static bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 
 STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList)
 {
@@ -68,16 +69,32 @@ histogram_t* data_ope_get_histo(uint32_t indexOperation)
   return r;
 }
 
-void data_ope_add(data_msg_t* pData)
+void data_ope_add_sample(data_msg_t* pSample)
 {
   data_operation_t* pCurrent;
   for (uint32_t i = 0; i < data_ope_nbItems; i++)
   {
     pCurrent = &data_ope_list[i];
-    if (pCurrent->sensor == pData->type)
+    if (pCurrent->sensor == pSample->type)
     {
-      data_ope_do_calcul(i, pCurrent, pData);
+      data_* pData = &data_temp[i];
+      if (pData->activated)
+        data_ope_do_calcul(i, pCurrent, pSample);
     }
+  }
+}
+
+void data_ope_activate_all(void)
+{
+  struct tm beginPeriodDate;
+  date_get_localtime(&beginPeriodDate);
+
+  for (uint32_t i = 0; i < data_ope_nbItems; i++)
+  {
+    data_* pData = &data_temp[i];
+    pData->beginPeriodDate = beginPeriodDate;
+    pData->lastDateIsValid = true;
+    pData->activated = true;
   }
 }
 

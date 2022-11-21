@@ -296,21 +296,19 @@ START_TEST(test_date_fp_one_hour)
   tu_set_localtime(&currentDate);
   localtime_display(&currentDate);
 
-  data_msg_t data;
-  data.type = RAIN;
-  data.container = FLOAT;
-  data.value.f = 10.0;
-  data_ope_add(&data);
+  data_ope_activate_all();
+
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 0);
 
   localtime_add_min(&currentDate, 15);
   tu_set_localtime(&currentDate);
 
+  data_msg_t data;
   data.type = RAIN;
   data.container = FLOAT;
   data.value.f = 15.0;
-  data_ope_add(&data);
+  data_ope_add_sample(&data);
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 0);
 
@@ -320,7 +318,7 @@ START_TEST(test_date_fp_one_hour)
   data.type = RAIN;
   data.container = FLOAT;
   data.value.f = 12.0;
-  data_ope_add(&data);
+  data_ope_add_sample(&data);
 
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 1);
@@ -338,7 +336,7 @@ START_TEST(test_date_fp_one_hour)
     data.type = RAIN;
     data.container = FLOAT;
     data.value.f = 12.0 + i;
-    data_ope_add(&data);
+    data_ope_add_sample(&data);
   }
 
   nbItemsHisto = histogram_nbItems(histo);
@@ -382,10 +380,8 @@ START_TEST(test_date_fp_one_day)
   currentDate.tm_year = 123;
 
   tu_set_localtime(&currentDate);
-  data.type = WIND_SPEED;
-  data.container = FLOAT;
-  data.value.f = 0.0; //first value is ignored used to take time reference
-  data_ope_add(&data);
+
+  data_ope_activate_all();
 
   for (uint32_t i = 0; i < 5; i++)
   {
@@ -393,7 +389,7 @@ START_TEST(test_date_fp_one_day)
     data.container = FLOAT;
     data.value.f = 12.0 + i;
     localtime_display(&currentDate);
-    data_ope_add(&data);
+    data_ope_add_sample(&data);
 
     localtime_add_hour(&currentDate, 2);
     tu_set_localtime(&currentDate);
@@ -413,7 +409,7 @@ START_TEST(test_date_fp_one_day)
     data.container = FLOAT;
     data.value.f = 25.5 + i;
     localtime_display(&currentDate);
-    data_ope_add(&data);
+    data_ope_add_sample(&data);
 
     localtime_add_hour(&currentDate, 2);
     tu_set_localtime(&currentDate);
@@ -460,6 +456,9 @@ START_TEST(test_date_fp_two_months)
   currentDate.tm_year = 123;
 
   tu_set_localtime(&currentDate);
+  data_ope_activate_all();
+
+  localtime_add_month(&currentDate, 1);
 
   for (uint32_t i = 0; i < 3; i++)
   {
@@ -467,7 +466,7 @@ START_TEST(test_date_fp_two_months)
     data.container = FLOAT;
     data.value.f = 6.0 + i;
     localtime_display(&currentDate);
-    data_ope_add(&data);
+    data_ope_add_sample(&data);
 
     localtime_add_month(&currentDate, 1);
     tu_set_localtime(&currentDate);
@@ -478,7 +477,7 @@ START_TEST(test_date_fp_two_months)
   s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
   fprintf(stdout, "value =%f\n", r.f32);
-  ck_assert_float_eq_tol(r.f32, 8.0, 0.1);
+  ck_assert_float_eq_tol(r.f32, 7.0, 0.1);
 
 
   for (uint32_t i = 0; i < 6; i++)
@@ -487,7 +486,7 @@ START_TEST(test_date_fp_two_months)
     data.container = FLOAT;
     data.value.f = 25.5 + i;
     localtime_display(&currentDate);
-    data_ope_add(&data);
+    data_ope_add_sample(&data);
 
     localtime_add_month(&currentDate, 1);
     tu_set_localtime(&currentDate);
@@ -498,16 +497,16 @@ START_TEST(test_date_fp_two_months)
   s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
   fprintf(stdout, "value =%f\n", r.f32);
-  ck_assert_float_eq_tol(r.f32, 30.5, 0.1);
+  ck_assert_float_eq_tol(r.f32, 29.5, 0.1);
 
 
   //add an extra data to check no month diff
   localtime_add_month(&currentDate, 1);
   tu_set_localtime(&currentDate);
-  data_ope_add(&data);
+  data_ope_add_sample(&data);
   localtime_add_day(&currentDate, 1);
   tu_set_localtime(&currentDate);
-  data_ope_add(&data);
+  data_ope_add_sample(&data);
 
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 5);

@@ -45,6 +45,8 @@ START_TEST(test_data_ope_cumul_01)
   s = data_ope_init(get_tu_operation_list_test_1(), get_tu_operation_nb_items_test_1());
   ck_assert(s == STATUS_OK);
 
+  data_ope_activate_all();
+
   histo = data_ope_get_histo(0);
   ck_assert(histo != NULL);
 
@@ -62,7 +64,7 @@ START_TEST(test_data_ope_cumul_01)
     data.type = RAIN;
     data.container = FLOAT;
     data.value.f = 1.0;
-    data_ope_add(&data);
+    data_ope_add_sample(&data);
 
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -111,6 +113,8 @@ START_TEST(test_data_ope_cumul_02)
   s = data_ope_init(get_tu_operation_list_test_2(), get_tu_operation_nb_items_test_2());
   ck_assert(s == STATUS_OK);
 
+  data_ope_activate_all();
+
   histo = data_ope_get_histo(0);
   ck_assert(histo != NULL);
 
@@ -123,7 +127,7 @@ START_TEST(test_data_ope_cumul_02)
       data.type = RAIN;
       data.container = FLOAT;
       data.value.f = 2.0;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
 
     nbItemsHisto = histogram_nbItems(histo);
@@ -160,6 +164,8 @@ START_TEST(test_data_ope_avg_01)
   s = data_ope_init(data_ope_config_list_avg_1, 1);
   ck_assert(s == STATUS_OK);
 
+  data_ope_activate_all();
+
   histo = data_ope_get_histo(0);
   ck_assert(histo != NULL);
 
@@ -172,7 +178,7 @@ START_TEST(test_data_ope_avg_01)
       data.type = WIND_SPEED;
       data.container = FLOAT;
       data.value.f = 10.0 + nbPeriod + nbSample;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -210,6 +216,8 @@ START_TEST(test_data_ope_min_01)
   s = data_ope_init(data_ope_config_list_min_1, 1);
   ck_assert(s == STATUS_OK);
 
+  data_ope_activate_all();
+
   histo = data_ope_get_histo(0);
   ck_assert(histo != NULL);
 
@@ -223,7 +231,7 @@ START_TEST(test_data_ope_min_01)
       data.type = WIND_SPEED;
       data.container = FLOAT;
       data.value.f = 10.0 + nbPeriod + nbSample;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -247,7 +255,7 @@ START_TEST(test_data_ope_min_01)
       data.type = WIND_SPEED;
       data.container = FLOAT;
       data.value.f = 10.0 - nbPeriod - nbSample;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -284,6 +292,8 @@ START_TEST(test_data_ope_max_01)
   s = data_ope_init(data_ope_config_list_max_1, 1);
   ck_assert(s == STATUS_OK);
 
+  data_ope_activate_all();
+
   histo = data_ope_get_histo(0);
   ck_assert(histo != NULL);
 
@@ -297,7 +307,7 @@ START_TEST(test_data_ope_max_01)
       data.type = WIND_SPEED;
       data.container = FLOAT;
       data.value.f = 10.0 + nbPeriod + nbSample;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -321,7 +331,7 @@ START_TEST(test_data_ope_max_01)
       data.type = WIND_SPEED;
       data.container = FLOAT;
       data.value.f = 10.0 - nbPeriod - nbSample;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -388,6 +398,8 @@ START_TEST(test_data_ope_robustness_1)
   s = data_ope_init(data_ope_config_list_avg_2, 1);
   ck_assert(s == STATUS_OK);
 
+  data_ope_activate_all();
+
   histo = data_ope_get_histo(0);
   ck_assert(histo != NULL);
 
@@ -401,7 +413,7 @@ START_TEST(test_data_ope_robustness_1)
       data.type = WIND_SPEED;
       data.container = FLOAT;
       data.value.f = 11.5 + nbPeriod + nbSample;
-      data_ope_add(&data);
+      data_ope_add_sample(&data);
     }
 
     nbItemsHisto = histogram_nbItems(histo);

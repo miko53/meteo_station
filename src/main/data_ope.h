@@ -58,8 +58,9 @@ extern "C" {
 #endif
 
 extern STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList);
-extern void data_ope_add(data_msg_t* pData);
+extern void data_ope_add_sample(data_msg_t* pSample);
 extern histogram_t* data_ope_get_histo(uint32_t indexOperation);
+extern void data_ope_activate_all(void);
 
 #ifdef __cplusplus
 }
