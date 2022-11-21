@@ -16,6 +16,16 @@ typedef enum
   INTEGER_32
 } data_container;
 
+typedef struct
+{
+  data_container type;
+  union
+  {
+    float f32;
+    uint32_t i32;
+  };
+} variant_t;
+
 typedef union
 {
   float f;

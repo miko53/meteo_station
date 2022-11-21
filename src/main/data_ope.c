@@ -113,7 +113,7 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
         else
         {
           struct tm currentDate;
-          bool hasDiff;
+          bool hasDiff = false;
           int32_t diff;
 
           data_ope_prepare_and_insert(index, pOperation, pData);
