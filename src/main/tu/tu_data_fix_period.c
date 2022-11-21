@@ -4,6 +4,7 @@
 #include "common.h"
 #include "config.h"
 #include "data_ope.h"
+#include "histogram.h"
 #include "libs.h"
 
 struct tm date_get_localtime_r;
@@ -276,9 +277,13 @@ START_TEST(test_date_fp_one_hour)
 {
   STATUS s;
   int32_t nbItemsHisto;
+  histogram_t* histo;
 
   s = data_ope_init(data_ope_config_list_test1, 1);
   ck_assert(s == STATUS_OK);
+
+  histo = data_ope_get_histo(0);
+  ck_assert(histo != NULL);
 
   struct tm currentDate;
   currentDate.tm_sec = 15;
@@ -296,7 +301,7 @@ START_TEST(test_date_fp_one_hour)
   data.container = FLOAT;
   data.value.f = 10.0;
   data_ope_add(&data);
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 0);
 
   localtime_add_min(&currentDate, 15);
@@ -306,7 +311,7 @@ START_TEST(test_date_fp_one_hour)
   data.container = FLOAT;
   data.value.f = 15.0;
   data_ope_add(&data);
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 0);
 
   localtime_add_min(&currentDate, 15);
@@ -317,10 +322,10 @@ START_TEST(test_date_fp_one_hour)
   data.value.f = 12.0;
   data_ope_add(&data);
 
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 1);
   variant r;
-  s = histogram_get(0, LAST_VALUE, &r);
+  s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
 
   ck_assert_float_eq_tol(r.f32, 27.0, 0.1);
@@ -336,8 +341,8 @@ START_TEST(test_date_fp_one_hour)
     data_ope_add(&data);
   }
 
-  nbItemsHisto = histogram_nbItems(0);
-  s = histogram_get(0, LAST_VALUE, &r);
+  nbItemsHisto = histogram_nbItems(histo);
+  s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(nbItemsHisto == 2);
   fprintf(stdout, "value =%f\n", r.f32);
   ck_assert_float_eq_tol(r.f32, 54.0, 0.1);
@@ -360,9 +365,13 @@ START_TEST(test_date_fp_one_day)
   int32_t nbItemsHisto;
   data_msg_t data;
   variant r;
+  histogram_t* histo;
 
   s = data_ope_init(data_ope_config_list_test2, 1);
   ck_assert(s == STATUS_OK);
+
+  histo = data_ope_get_histo(0);
+  ck_assert(histo != NULL);
 
   struct tm currentDate;
   currentDate.tm_sec = 35;
@@ -390,9 +399,9 @@ START_TEST(test_date_fp_one_day)
     tu_set_localtime(&currentDate);
   }
 
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 1);
-  s = histogram_get(0, LAST_VALUE, &r);
+  s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
   fprintf(stdout, "value =%f\n", r.f32);
   ck_assert_float_eq_tol(r.f32, 14.0, 0.1);
@@ -410,9 +419,9 @@ START_TEST(test_date_fp_one_day)
     tu_set_localtime(&currentDate);
   }
 
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 2);
-  s = histogram_get(0, LAST_VALUE, &r);
+  s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
   fprintf(stdout, "value =%f\n", r.f32);
   ck_assert_float_eq_tol(r.f32, 31.0, 0.1);
@@ -434,9 +443,13 @@ START_TEST(test_date_fp_two_months)
   int32_t nbItemsHisto;
   data_msg_t data;
   variant r;
+  histogram_t* histo;
 
   s = data_ope_init(data_ope_config_list_test3, 1);
   ck_assert(s == STATUS_OK);
+
+  histo = data_ope_get_histo(0);
+  ck_assert(histo != NULL);
 
   struct tm currentDate;
   currentDate.tm_sec = 00;
@@ -460,9 +473,9 @@ START_TEST(test_date_fp_two_months)
     tu_set_localtime(&currentDate);
   }
 
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 1);
-  s = histogram_get(0, LAST_VALUE, &r);
+  s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
   fprintf(stdout, "value =%f\n", r.f32);
   ck_assert_float_eq_tol(r.f32, 8.0, 0.1);
@@ -480,9 +493,9 @@ START_TEST(test_date_fp_two_months)
     tu_set_localtime(&currentDate);
   }
 
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 4);
-  s = histogram_get(0, LAST_VALUE, &r);
+  s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
   fprintf(stdout, "value =%f\n", r.f32);
   ck_assert_float_eq_tol(r.f32, 30.5, 0.1);
@@ -496,7 +509,7 @@ START_TEST(test_date_fp_two_months)
   tu_set_localtime(&currentDate);
   data_ope_add(&data);
 
-  nbItemsHisto = histogram_nbItems(0);
+  nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 5);
 
 }

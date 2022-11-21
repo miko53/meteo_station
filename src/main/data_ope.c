@@ -2,14 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "libs.h"
-
-typedef struct
-{
-  uint32_t nbitems;
-  uint32_t current_index;
-  bool bFill;
-  variant* datas;
-} histogram_t;
+#include "histogram.h"
 
 typedef struct
 {
@@ -29,67 +22,6 @@ void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, d
 bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
-
-STATUS histogram_init(histogram_t* h, uint32_t nbItems)
-{
-  STATUS s;
-  s = STATUS_ERROR;
-  h->current_index = 0;
-  h->nbitems = nbItems;
-  h->bFill = false;
-  h->datas = calloc(nbItems, sizeof(variant));
-  if (h->datas != NULL)
-    s = STATUS_OK;
-  return s;
-}
-
-void histogram_insert(histogram_t* h, variant v)
-{
-  if (h->current_index >= h->nbitems)
-  {
-    h->current_index = 0;
-    h->bFill = true;
-  }
-  h->datas[h->current_index++] = v;
-}
-
-STATUS histogram_get(uint32_t histoIndex, uint32_t index, variant* v)
-{
-  STATUS s;
-  if (histoIndex >= data_ope_nbItems)
-    s = STATUS_ERROR;
-  else
-  {
-    histogram_t* h = &data_temp[histoIndex].histo;
-    if ((h->bFill == false) && (index >= h->current_index))
-      s = STATUS_ERROR;
-    else
-    {
-      s = STATUS_OK;
-      uint32_t index_to_take = (h->current_index - 1 - index) % h->nbitems;
-      fprintf(stdout, "index_to_take = %d\n", index_to_take);
-      *v = h->datas[index_to_take];
-    }
-  }
-  return s;
-}
-
-int32_t histogram_nbItems(uint32_t histoIndex)
-{
-  int32_t r;
-  if (histoIndex >= data_ope_nbItems)
-    r = -1;
-  else
-  {
-    histogram_t* h = &data_temp[histoIndex].histo;
-    if (h->bFill == true)
-      r = h->nbitems;
-    else
-      r = h->current_index;
-  }
-  return r;
-}
-
 
 STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList)
 {
@@ -124,6 +56,16 @@ STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList)
   }
 
   return s;
+}
+
+histogram_t* data_ope_get_histo(uint32_t indexOperation)
+{
+  histogram_t* r;
+  if (indexOperation >= data_ope_nbItems)
+    r = NULL;
+  else
+    r = &data_temp[indexOperation].histo;
+  return r;
 }
 
 void data_ope_add(data_msg_t* pData)

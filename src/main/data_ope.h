@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "data_defs.h"
+#include "histogram.h"
 
 typedef enum
 {
@@ -52,23 +53,13 @@ typedef struct
   bool bStoreInSD;
 } data_operation_t;
 
-typedef union
-{
-  float f32;
-  uint32_t i32;
-} variant;
-
-#define LAST_VALUE  (0)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList);
 extern void data_ope_add(data_msg_t* pData);
-
-extern STATUS histogram_get(uint32_t histoIndex, uint32_t index, variant* v);
-extern int32_t histogram_nbItems(uint32_t histoIndex);
+extern histogram_t* data_ope_get_histo(uint32_t indexOperation);
 
 #ifdef __cplusplus
 }

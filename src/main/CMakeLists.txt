@@ -4,6 +4,7 @@ include_directories(include)
 include_directories(.)
 add_executable(tu_data_test 
                 data_ope.c
+                histogram.c
                 tu/tu_data_ope.c
                )
 
@@ -12,6 +13,7 @@ add_test(tu_data_test tu_data_test)
 
 add_executable(tu_data_fix_period_test
                 data_ope.c
+                histogram.c
                 tu/tu_data_fix_period.c
                )
 target_link_libraries(tu_data_fix_period_test ${CHECK_LIBRARIES} pthread)
@@ -38,6 +40,7 @@ SET(APP_SOURCE main.c
                anemometer.c
                winddir.c
                data_ope.c
+               histogram.c
                data_ope_config.c
 #               main_test.c
                )
