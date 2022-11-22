@@ -60,10 +60,9 @@ START_TEST(test_data_ope_cumul_01)
   //check ramp of data until histo are filled
   for (int32_t nbSample = 0; nbSample < 30; nbSample++)
   {
-    data_msg_t data;
-    data.type = RAIN;
-    variant_f32(&data.value, 1.0);
-    data_ope_add_sample(&data);
+    variant_t data;
+    variant_f32(&data, 1.0);
+    data_ope_add_sample(RAIN, &data);
 
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -122,10 +121,9 @@ START_TEST(test_data_ope_cumul_02)
     //check ramp of data until histo are filled
     for (uint32_t nbSample = 0; nbSample < 360; nbSample++)
     {
-      data_msg_t data;
-      data.type = RAIN;
-      variant_f32(&data.value, 2.0);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 2.0);
+      data_ope_add_sample(RAIN, &data);
     }
 
     nbItemsHisto = histogram_nbItems(histo);
@@ -172,10 +170,9 @@ START_TEST(test_data_ope_avg_01)
   {
     for (int32_t nbSample = 0; nbSample < 10; nbSample++)
     {
-      data_msg_t data;
-      data.type = WIND_SPEED;
-      variant_f32(&data.value, 10.0 + nbPeriod + nbSample);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 10.0 + nbPeriod + nbSample);
+      data_ope_add_sample(WIND_SPEED, &data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -224,10 +221,9 @@ START_TEST(test_data_ope_min_01)
   {
     for (int32_t nbSample = 0; nbSample < 10; nbSample++)
     {
-      data_msg_t data;
-      data.type = WIND_SPEED;
-      variant_f32(&data.value, 10.0 + nbPeriod + nbSample);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 10.0 + nbPeriod + nbSample);
+      data_ope_add_sample(WIND_SPEED, &data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -247,10 +243,9 @@ START_TEST(test_data_ope_min_01)
   {
     for (int32_t nbSample = 0; nbSample < 10; nbSample++)
     {
-      data_msg_t data;
-      data.type = WIND_SPEED;
-      variant_f32(&data.value, 10.0 - nbPeriod - nbSample);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 10.0 - nbPeriod - nbSample);
+      data_ope_add_sample(WIND_SPEED, &data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -298,10 +293,9 @@ START_TEST(test_data_ope_max_01)
   {
     for (int32_t nbSample = 0; nbSample < 10; nbSample++)
     {
-      data_msg_t data;
-      data.type = WIND_SPEED;
-      variant_f32(&data.value, 10.0 + nbPeriod + nbSample);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 10.0 + nbPeriod + nbSample);
+      data_ope_add_sample(WIND_SPEED, &data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -321,10 +315,9 @@ START_TEST(test_data_ope_max_01)
   {
     for (int32_t nbSample = 0; nbSample < 10; nbSample++)
     {
-      data_msg_t data;
-      data.type = WIND_SPEED;
-      variant_f32(&data.value, 10.0 - nbPeriod - nbSample);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 10.0 - nbPeriod - nbSample);
+      data_ope_add_sample(WIND_SPEED, &data);
     }
     nbItemsHisto = histogram_nbItems(histo);
     fprintf(stdout, "nbItemsHisto = %d\n", nbItemsHisto);
@@ -402,10 +395,9 @@ START_TEST(test_data_ope_robustness_1)
   {
     for (int32_t nbSample = 0; nbSample < 5; nbSample++)
     {
-      data_msg_t data;
-      data.type = WIND_SPEED;
-      variant_f32(&data.value, 11.5 + nbPeriod + nbSample);
-      data_ope_add_sample(&data);
+      variant_t data;
+      variant_f32(&data, 11.5 + nbPeriod + nbSample);
+      data_ope_add_sample(WIND_SPEED, &data);
     }
 
     nbItemsHisto = histogram_nbItems(histo);

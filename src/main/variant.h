@@ -51,6 +51,60 @@ static inline uint32_t variant_to_u32(variant_t* v)
   return (uint32_t) v->f32;
 }
 
+static inline bool variant_is_higher(variant_t* v1, variant_t* v2, variant_type type)
+{
+  bool b = false;
+  switch (type)
+  {
+    case INTEGER_32:
+      b = v1->i32 > v2->i32;
+      break;
+
+    case FLOAT:
+      b = v1->f32 > v2->f32;
+      break;
+
+    default:
+      break;
+  }
+  return b;
+}
+
+static inline bool variant_is_lower(variant_t* v1, variant_t* v2, variant_type type)
+{
+  bool b = false;
+  switch (type)
+  {
+    case INTEGER_32:
+      b = v1->i32 < v2->i32;
+      break;
+
+    case FLOAT:
+      b = v1->f32 < v2->f32;
+      break;
+
+    default:
+      break;
+  }
+  return b;
+}
+
+static inline void variant_add(variant_t* r, variant_t* v1, variant_t* v2, variant_type type)
+{
+  switch (type)
+  {
+    case INTEGER_32:
+      r->i32 = v1->i32 + v2->i32;
+      break;
+
+    case FLOAT:
+      r->f32 = v1->f32 + v2->f32;
+      break;
+
+    default:
+      break;
+  }
+}
 #ifdef __cplusplus
 }
 #endif

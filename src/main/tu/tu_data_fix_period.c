@@ -304,19 +304,17 @@ START_TEST(test_date_fp_one_hour)
   localtime_add_min(&currentDate, 15);
   tu_set_localtime(&currentDate);
 
-  data_msg_t data;
-  data.type = RAIN;
-  variant_f32(&data.value, 15.0);
-  data_ope_add_sample(&data);
+  variant_t data;
+  variant_f32(&data, 15.0);
+  data_ope_add_sample(RAIN, &data);
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 0);
 
   localtime_add_min(&currentDate, 15);
   tu_set_localtime(&currentDate);
 
-  data.type = RAIN;
-  variant_f32(&data.value, 12.0);
-  data_ope_add_sample(&data);
+  variant_f32(&data, 12.0);
+  data_ope_add_sample(RAIN, &data);
 
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 1);
@@ -331,9 +329,8 @@ START_TEST(test_date_fp_one_hour)
     localtime_add_min(&currentDate, 15);
     tu_set_localtime(&currentDate);
 
-    data.type = RAIN;
-    variant_f32(&data.value, 12.0 + i);
-    data_ope_add_sample(&data);
+    variant_f32(&data, 12.0 + i);
+    data_ope_add_sample(RAIN, &data);
   }
 
   nbItemsHisto = histogram_nbItems(histo);
@@ -358,7 +355,7 @@ START_TEST(test_date_fp_one_day)
 {
   STATUS s;
   int32_t nbItemsHisto;
-  data_msg_t data;
+  variant_t data;
   variant_t r;
   histogram_t* histo;
 
@@ -382,10 +379,9 @@ START_TEST(test_date_fp_one_day)
 
   for (uint32_t i = 0; i < 5; i++)
   {
-    data.type = WIND_SPEED;
-    variant_f32(&data.value, 12.0 + i);
+    variant_f32(&data, 12.0 + i);
     localtime_display(&currentDate);
-    data_ope_add_sample(&data);
+    data_ope_add_sample(WIND_SPEED, &data);
 
     localtime_add_hour(&currentDate, 2);
     tu_set_localtime(&currentDate);
@@ -401,10 +397,9 @@ START_TEST(test_date_fp_one_day)
 
   for (uint32_t i = 0; i < 12; i++)
   {
-    data.type = WIND_SPEED;
-    variant_f32(&data.value, 25.5 + i);
+    variant_f32(&data, 25.5 + i);
     localtime_display(&currentDate);
-    data_ope_add_sample(&data);
+    data_ope_add_sample(WIND_SPEED, &data);
 
     localtime_add_hour(&currentDate, 2);
     tu_set_localtime(&currentDate);
@@ -432,7 +427,7 @@ START_TEST(test_date_fp_two_months)
 {
   STATUS s;
   int32_t nbItemsHisto;
-  data_msg_t data;
+  variant_t data;
   variant_t r;
   histogram_t* histo;
 
@@ -457,10 +452,9 @@ START_TEST(test_date_fp_two_months)
 
   for (uint32_t i = 0; i < 3; i++)
   {
-    data.type = WIND_SPEED;
-    variant_f32(&data.value, 6.0 + i);
+    variant_f32(&data, 6.0 + i);
     localtime_display(&currentDate);
-    data_ope_add_sample(&data);
+    data_ope_add_sample(WIND_SPEED, &data);
 
     localtime_add_month(&currentDate, 1);
     tu_set_localtime(&currentDate);
@@ -476,10 +470,9 @@ START_TEST(test_date_fp_two_months)
 
   for (uint32_t i = 0; i < 6; i++)
   {
-    data.type = WIND_SPEED;
-    variant_f32(&data.value, 25.5 + i);
+    variant_f32(&data, 25.5 + i);
     localtime_display(&currentDate);
-    data_ope_add_sample(&data);
+    data_ope_add_sample(WIND_SPEED, &data);
 
     localtime_add_month(&currentDate, 1);
     tu_set_localtime(&currentDate);
@@ -496,10 +489,10 @@ START_TEST(test_date_fp_two_months)
   //add an extra data to check no month diff
   localtime_add_month(&currentDate, 1);
   tu_set_localtime(&currentDate);
-  data_ope_add_sample(&data);
+  data_ope_add_sample(WIND_SPEED, &data);
   localtime_add_day(&currentDate, 1);
   tu_set_localtime(&currentDate);
-  data_ope_add_sample(&data);
+  data_ope_add_sample(WIND_SPEED, &data);
 
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 5);

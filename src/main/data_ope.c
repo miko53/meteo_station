@@ -18,8 +18,8 @@ static data_* data_temp;
 static data_operation_t* data_ope_list;
 static uint32_t data_ope_nbItems;
 
-static void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
-static void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, data_msg_t* pData);
+static void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t* pSample);
+static void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, variant_t* pData);
 static bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 static bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 static bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
@@ -69,13 +69,13 @@ histogram_t* data_ope_get_histo(uint32_t indexOperation)
   return r;
 }
 
-void data_ope_add_sample(data_msg_t* pSample)
+void data_ope_add_sample(data_type_t dataType, variant_t* pSample)
 {
   data_operation_t* pCurrent;
   for (uint32_t i = 0; i < data_ope_nbItems; i++)
   {
     pCurrent = &data_ope_list[i];
-    if (pCurrent->sensor == pSample->type)
+    if (pCurrent->sensor == dataType)
     {
       data_* pData = &data_temp[i];
       if (pData->activated)
@@ -98,7 +98,7 @@ void data_ope_activate_all(void)
   }
 }
 
-void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t* pData)
+void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t* pSample)
 {
   uint32_t nbItems;
   switch (pOperation->calcul_period.type)
@@ -116,7 +116,7 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
           bool hasDiff = false;
           int32_t diff;
 
-          data_ope_prepare_and_insert(index, pOperation, pData);
+          data_ope_prepare_and_insert(index, pOperation, pSample);
           date_get_localtime(&currentDate);
 
           switch (pOperation->calcul_period.f_period.unit)
@@ -153,7 +153,7 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
       break;
 
     case SLIDING_PERIOD:
-      data_ope_prepare_and_insert(index, pOperation, pData);
+      data_ope_prepare_and_insert(index, pOperation, pSample);
 
       nbItems = pOperation->calcul_period.period_sec / pOperation->refresh_period_sec;
       fprintf(stdout, "nbItems = %d, nbData = %d\n", nbItems, data_temp[index].nbData);
@@ -171,98 +171,43 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
   }
 }
 
-bool variant_is_higher(variant_t* v1, variant_t* v2, variant_type type)
-{
-  bool b = false;
-  switch (type)
-  {
-    case INTEGER_32:
-      b = v1->i32 > v2->i32;
-      break;
-
-    case FLOAT:
-      b = v1->f32 > v2->f32;
-      break;
-
-    default:
-      break;
-  }
-  return b;
-}
-
-bool variant_is_lower(variant_t* v1, variant_t* v2, variant_type type)
-{
-  bool b = false;
-  switch (type)
-  {
-    case INTEGER_32:
-      b = v1->i32 < v2->i32;
-      break;
-
-    case FLOAT:
-      b = v1->f32 < v2->f32;
-      break;
-
-    default:
-      break;
-  }
-  return b;
-}
-
-void variant_add(variant_t* r, variant_t* v1, variant_t* v2, variant_type type)
-{
-  switch (type)
-  {
-    case INTEGER_32:
-      r->i32 = v1->i32 + v2->i32;
-      break;
-
-    case FLOAT:
-      r->f32 = v1->f32 + v2->f32;
-      break;
-
-    default:
-      break;
-  }
-}
-
-void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, data_msg_t* pData)
+void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, variant_t* pData)
 {
   if (pOperation->operation == OPE_MAX)
   {
     if (data_temp[index].nbData == 0)
     {
-      data_temp[index].temp = pData->value;
+      data_temp[index].temp = *pData;
     }
     else
     {
       bool b;
-      b = variant_is_higher(&pData->value, &data_temp[index].temp, data_temp[index].temp.type);
+      b = variant_is_higher(pData, &data_temp[index].temp, data_temp[index].temp.type);
       if (b)
-        data_temp[index].temp = pData->value;
+        data_temp[index].temp = *pData;
     }
   }
   else if (pOperation->operation == OPE_MIN)
   {
     if (data_temp[index].nbData == 0)
     {
-      data_temp[index].temp = pData->value;
+      data_temp[index].temp = *pData;
     }
     else
     {
       bool b;
-      b = variant_is_lower(&pData->value, &data_temp[index].temp, data_temp[index].temp.type);
+      b = variant_is_lower(pData, &data_temp[index].temp, data_temp[index].temp.type);
       if (b)
-        data_temp[index].temp = pData->value;
+        data_temp[index].temp = *pData;
     }
   }
   else
   {
     if (data_temp[index].nbData == 0)
-      data_temp[index].temp = pData->value;
+      data_temp[index].temp = *pData;
     else
     {
-      variant_add(&data_temp[index].temp, &data_temp[index].temp, &pData->value, data_temp[index].temp.type);
+      variant_add(&data_temp[index].temp, &data_temp[index].temp, pData, data_temp[index].temp.type);
     }
   }
   data_temp[index].nbData++;
