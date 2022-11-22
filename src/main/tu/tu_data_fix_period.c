@@ -306,8 +306,7 @@ START_TEST(test_date_fp_one_hour)
 
   data_msg_t data;
   data.type = RAIN;
-  data.container = FLOAT;
-  data.value.f = 15.0;
+  variant_f32(&data.value, 15.0);
   data_ope_add_sample(&data);
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 0);
@@ -316,13 +315,12 @@ START_TEST(test_date_fp_one_hour)
   tu_set_localtime(&currentDate);
 
   data.type = RAIN;
-  data.container = FLOAT;
-  data.value.f = 12.0;
+  variant_f32(&data.value, 12.0);
   data_ope_add_sample(&data);
 
   nbItemsHisto = histogram_nbItems(histo);
   ck_assert(nbItemsHisto == 1);
-  variant r;
+  variant_t r;
   s = histogram_get(histo, LAST_VALUE, &r);
   ck_assert(s == STATUS_OK);
 
@@ -334,8 +332,7 @@ START_TEST(test_date_fp_one_hour)
     tu_set_localtime(&currentDate);
 
     data.type = RAIN;
-    data.container = FLOAT;
-    data.value.f = 12.0 + i;
+    variant_f32(&data.value, 12.0 + i);
     data_ope_add_sample(&data);
   }
 
@@ -362,7 +359,7 @@ START_TEST(test_date_fp_one_day)
   STATUS s;
   int32_t nbItemsHisto;
   data_msg_t data;
-  variant r;
+  variant_t r;
   histogram_t* histo;
 
   s = data_ope_init(data_ope_config_list_test2, 1);
@@ -386,8 +383,7 @@ START_TEST(test_date_fp_one_day)
   for (uint32_t i = 0; i < 5; i++)
   {
     data.type = WIND_SPEED;
-    data.container = FLOAT;
-    data.value.f = 12.0 + i;
+    variant_f32(&data.value, 12.0 + i);
     localtime_display(&currentDate);
     data_ope_add_sample(&data);
 
@@ -406,8 +402,7 @@ START_TEST(test_date_fp_one_day)
   for (uint32_t i = 0; i < 12; i++)
   {
     data.type = WIND_SPEED;
-    data.container = FLOAT;
-    data.value.f = 25.5 + i;
+    variant_f32(&data.value, 25.5 + i);
     localtime_display(&currentDate);
     data_ope_add_sample(&data);
 
@@ -438,7 +433,7 @@ START_TEST(test_date_fp_two_months)
   STATUS s;
   int32_t nbItemsHisto;
   data_msg_t data;
-  variant r;
+  variant_t r;
   histogram_t* histo;
 
   s = data_ope_init(data_ope_config_list_test3, 1);
@@ -463,8 +458,7 @@ START_TEST(test_date_fp_two_months)
   for (uint32_t i = 0; i < 3; i++)
   {
     data.type = WIND_SPEED;
-    data.container = FLOAT;
-    data.value.f = 6.0 + i;
+    variant_f32(&data.value, 6.0 + i);
     localtime_display(&currentDate);
     data_ope_add_sample(&data);
 
@@ -483,8 +477,7 @@ START_TEST(test_date_fp_two_months)
   for (uint32_t i = 0; i < 6; i++)
   {
     data.type = WIND_SPEED;
-    data.container = FLOAT;
-    data.value.f = 25.5 + i;
+    variant_f32(&data.value, 25.5 + i);
     localtime_display(&currentDate);
     data_ope_add_sample(&data);
 

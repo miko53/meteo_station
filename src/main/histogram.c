@@ -8,13 +8,13 @@ STATUS histogram_init(histogram_t* h, uint32_t nbItems)
   h->current_index = 0;
   h->nbitems = nbItems;
   h->bFill = false;
-  h->datas = calloc(nbItems, sizeof(variant));
+  h->datas = calloc(nbItems, sizeof(variant_t));
   if (h->datas != NULL)
     s = STATUS_OK;
   return s;
 }
 
-void histogram_insert(histogram_t* h, variant v)
+void histogram_insert(histogram_t* h, variant_t v)
 {
   if (h->current_index >= h->nbitems)
   {
@@ -24,7 +24,7 @@ void histogram_insert(histogram_t* h, variant v)
   h->datas[h->current_index++] = v;
 }
 
-STATUS histogram_get(histogram_t* h, uint32_t index, variant* v)
+STATUS histogram_get(histogram_t* h, uint32_t index, variant_t* v)
 {
   STATUS s;
   if (h == NULL)

@@ -2,21 +2,16 @@
 #define __HISTOGRAM_H__
 
 #include "common.h"
+#include "variant.h"
 
 #define LAST_VALUE  (0)
-
-typedef union
-{
-  float f32;
-  uint32_t i32;
-} variant;
 
 typedef struct
 {
   uint32_t nbitems;
   uint32_t current_index;
   bool bFill;
-  variant* datas;
+  variant_t* datas;
 } histogram_t;
 
 #ifdef __cplusplus
@@ -24,8 +19,8 @@ extern "C" {
 #endif
 
 extern STATUS histogram_init(histogram_t* h, uint32_t nbItems);
-extern void histogram_insert(histogram_t* h, variant v);
-extern STATUS histogram_get(histogram_t* h, uint32_t index, variant* v);
+extern void histogram_insert(histogram_t* h, variant_t v);
+extern STATUS histogram_get(histogram_t* h, uint32_t index, variant_t* v);
 extern int32_t histogram_nbItems(histogram_t* h);
 
 #ifdef __cplusplus

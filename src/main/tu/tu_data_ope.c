@@ -38,7 +38,7 @@ uint32_t get_tu_operation_nb_items_test_1(void)
 START_TEST(test_data_ope_cumul_01)
 {
   STATUS s;
-  variant r;
+  variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
 
@@ -62,8 +62,7 @@ START_TEST(test_data_ope_cumul_01)
   {
     data_msg_t data;
     data.type = RAIN;
-    data.container = FLOAT;
-    data.value.f = 1.0;
+    variant_f32(&data.value, 1.0);
     data_ope_add_sample(&data);
 
     nbItemsHisto = histogram_nbItems(histo);
@@ -106,7 +105,7 @@ uint32_t get_tu_operation_nb_items_test_2(void)
 START_TEST(test_data_ope_cumul_02)
 {
   STATUS s;
-  variant r;
+  variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
 
@@ -125,8 +124,7 @@ START_TEST(test_data_ope_cumul_02)
     {
       data_msg_t data;
       data.type = RAIN;
-      data.container = FLOAT;
-      data.value.f = 2.0;
+      variant_f32(&data.value, 2.0);
       data_ope_add_sample(&data);
     }
 
@@ -157,7 +155,7 @@ static data_operation_t data_ope_config_list_avg_1[] =
 START_TEST(test_data_ope_avg_01)
 {
   STATUS s;
-  variant r;
+  variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
 
@@ -176,8 +174,7 @@ START_TEST(test_data_ope_avg_01)
     {
       data_msg_t data;
       data.type = WIND_SPEED;
-      data.container = FLOAT;
-      data.value.f = 10.0 + nbPeriod + nbSample;
+      variant_f32(&data.value, 10.0 + nbPeriod + nbSample);
       data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
@@ -209,7 +206,7 @@ static data_operation_t data_ope_config_list_min_1[] =
 START_TEST(test_data_ope_min_01)
 {
   STATUS s;
-  variant r;
+  variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
 
@@ -229,8 +226,7 @@ START_TEST(test_data_ope_min_01)
     {
       data_msg_t data;
       data.type = WIND_SPEED;
-      data.container = FLOAT;
-      data.value.f = 10.0 + nbPeriod + nbSample;
+      variant_f32(&data.value, 10.0 + nbPeriod + nbSample);
       data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
@@ -253,8 +249,7 @@ START_TEST(test_data_ope_min_01)
     {
       data_msg_t data;
       data.type = WIND_SPEED;
-      data.container = FLOAT;
-      data.value.f = 10.0 - nbPeriod - nbSample;
+      variant_f32(&data.value, 10.0 - nbPeriod - nbSample);
       data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
@@ -285,7 +280,7 @@ static data_operation_t data_ope_config_list_max_1[] =
 START_TEST(test_data_ope_max_01)
 {
   STATUS s;
-  variant r;
+  variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
 
@@ -305,8 +300,7 @@ START_TEST(test_data_ope_max_01)
     {
       data_msg_t data;
       data.type = WIND_SPEED;
-      data.container = FLOAT;
-      data.value.f = 10.0 + nbPeriod + nbSample;
+      variant_f32(&data.value, 10.0 + nbPeriod + nbSample);
       data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
@@ -329,8 +323,7 @@ START_TEST(test_data_ope_max_01)
     {
       data_msg_t data;
       data.type = WIND_SPEED;
-      data.container = FLOAT;
-      data.value.f = 10.0 - nbPeriod - nbSample;
+      variant_f32(&data.value, 10.0 - nbPeriod - nbSample);
       data_ope_add_sample(&data);
     }
     nbItemsHisto = histogram_nbItems(histo);
@@ -387,7 +380,7 @@ static float data_ope_result_for_avg2_robustness_1[] =
 
 START_TEST(test_data_ope_robustness_1)
 {
-  variant r;
+  variant_t r;
   int32_t nbItemsHisto;
   STATUS s, s2;
   histogram_t* histo;
@@ -411,8 +404,7 @@ START_TEST(test_data_ope_robustness_1)
     {
       data_msg_t data;
       data.type = WIND_SPEED;
-      data.container = FLOAT;
-      data.value.f = 11.5 + nbPeriod + nbSample;
+      variant_f32(&data.value, 11.5 + nbPeriod + nbSample);
       data_ope_add_sample(&data);
     }
 

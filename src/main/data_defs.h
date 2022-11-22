@@ -1,6 +1,8 @@
 #ifndef __DATA_DEFS_H__
 #define __DATA_DEFS_H__
 
+#include "variant.h"
+
 typedef enum
 {
   TEMPERATURE,
@@ -10,33 +12,10 @@ typedef enum
   WIND_DIR
 } data_type_t;
 
-typedef enum
-{
-  FLOAT,
-  INTEGER_32
-} data_container;
-
-typedef struct
-{
-  data_container type;
-  union
-  {
-    float f32;
-    uint32_t i32;
-  };
-} variant_t;
-
-typedef union
-{
-  float f;
-  uint32_t i;
-} data_v_t;
-
 typedef struct
 {
   data_type_t type;
-  data_container container;
-  data_v_t value;
+  variant_t value;
 } data_msg_t;
 
 #ifdef __cplusplus

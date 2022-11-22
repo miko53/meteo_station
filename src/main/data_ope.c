@@ -6,7 +6,7 @@
 
 typedef struct
 {
-  variant temp;
+  variant_t temp;
   uint32_t nbData;
   histogram_t histo;
   struct tm beginPeriodDate;
@@ -144,9 +144,9 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
             {
               data_temp[index].temp.f32 /= data_temp[index].nbData;
             }
-            data_temp[index].nbData = 0;
             histogram_insert(&data_temp[index].histo, data_temp[index].temp);
             data_temp[index].beginPeriodDate = currentDate;
+            data_temp[index].nbData = 0;
           }
         }
       }
@@ -164,10 +164,64 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
         {
           data_temp[index].temp.f32 /= nbItems;
         }
-        data_temp[index].nbData = 0;
-
         histogram_insert(&data_temp[index].histo, data_temp[index].temp);
+        data_temp[index].nbData = 0;
       }
+      break;
+  }
+}
+
+bool variant_is_higher(variant_t* v1, variant_t* v2, variant_type type)
+{
+  bool b = false;
+  switch (type)
+  {
+    case INTEGER_32:
+      b = v1->i32 > v2->i32;
+      break;
+
+    case FLOAT:
+      b = v1->f32 > v2->f32;
+      break;
+
+    default:
+      break;
+  }
+  return b;
+}
+
+bool variant_is_lower(variant_t* v1, variant_t* v2, variant_type type)
+{
+  bool b = false;
+  switch (type)
+  {
+    case INTEGER_32:
+      b = v1->i32 < v2->i32;
+      break;
+
+    case FLOAT:
+      b = v1->f32 < v2->f32;
+      break;
+
+    default:
+      break;
+  }
+  return b;
+}
+
+void variant_add(variant_t* r, variant_t* v1, variant_t* v2, variant_type type)
+{
+  switch (type)
+  {
+    case INTEGER_32:
+      r->i32 = v1->i32 + v2->i32;
+      break;
+
+    case FLOAT:
+      r->f32 = v1->f32 + v2->f32;
+      break;
+
+    default:
       break;
   }
 }
@@ -178,31 +232,38 @@ void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, d
   {
     if (data_temp[index].nbData == 0)
     {
-      data_temp[index].temp.f32 = pData->value.f;
+      data_temp[index].temp = pData->value;
     }
     else
     {
-      if (pData->value.f > data_temp[index].temp.f32)
-        data_temp[index].temp.f32 = pData->value.f;
+      bool b;
+      b = variant_is_higher(&pData->value, &data_temp[index].temp, data_temp[index].temp.type);
+      if (b)
+        data_temp[index].temp = pData->value;
     }
   }
   else if (pOperation->operation == OPE_MIN)
   {
     if (data_temp[index].nbData == 0)
     {
-      data_temp[index].temp.f32 = pData->value.f;
+      data_temp[index].temp = pData->value;
     }
     else
     {
-      if (pData->value.f < data_temp[index].temp.f32)
-        data_temp[index].temp.f32 = pData->value.f;
+      bool b;
+      b = variant_is_lower(&pData->value, &data_temp[index].temp, data_temp[index].temp.type);
+      if (b)
+        data_temp[index].temp = pData->value;
     }
   }
   else
   {
     if (data_temp[index].nbData == 0)
-      data_temp[index].temp.f32 = 0;
-    data_temp[index].temp.f32 += pData->value.f;
+      data_temp[index].temp = pData->value;
+    else
+    {
+      variant_add(&data_temp[index].temp, &data_temp[index].temp, &pData->value, data_temp[index].temp.type);
+    }
   }
   data_temp[index].nbData++;
 }
