@@ -92,15 +92,15 @@ void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed,  data_
   struct tm dateTime;
   date_get_localtime(&dateTime);
 
-  if (pData->container == INTEGER_32)
+  if (pData->value.type == INTEGER_32)
   {
     snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%d\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
-             dateTime.tm_sec, pData->value.i);
+             dateTime.tm_sec, pData->value.i32);
   }
   else
   {
     snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%f\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
-             dateTime.tm_sec, pData->value.f);
+             dateTime.tm_sec, pData->value.f32);
   }
 }
 
@@ -131,15 +131,15 @@ static void ctrl_display_data_reception(data_msg_t* pDataMsg)
     case TEMPERATURE:
       break;
     case RAIN:
-      log_info_print("RAIN %f mm", pDataMsg->value.f);
+      log_info_print("RAIN %f mm", pDataMsg->value.f32);
       break;
 
     case WIND_DIR:
-      log_info_print("WIND_DIR %d ", pDataMsg->value.i);
+      log_info_print("WIND_DIR %d ", pDataMsg->value.i32);
       break;
 
     case WIND_SPEED:
-      log_info_print("WIND_SPEED %f m/s", pDataMsg->value.f);
+      log_info_print("WIND_SPEED %f m/s", pDataMsg->value.f32);
       break;
 
     default:

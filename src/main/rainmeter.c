@@ -64,8 +64,7 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
   {
     data_msg_t msg;
     msg.type = RAIN;
-    msg.container = FLOAT;
-    msg.value.f = count * RAINMETER_CONVERTER;
+    variant_f32(&msg.value, count * RAINMETER_CONVERTER);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 extern STATUS histogram_init(histogram_t* h, uint32_t nbItems);
-extern void histogram_insert(histogram_t* h, variant_t v);
+extern void histogram_insert(histogram_t* h, variant_t* v);
 extern STATUS histogram_get(histogram_t* h, uint32_t index, variant_t* v);
 extern int32_t histogram_nbItems(histogram_t* h);
 

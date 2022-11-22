@@ -144,7 +144,7 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
             {
               data_temp[index].temp.f32 /= data_temp[index].nbData;
             }
-            histogram_insert(&data_temp[index].histo, data_temp[index].temp);
+            histogram_insert(&data_temp[index].histo, &data_temp[index].temp);
             data_temp[index].beginPeriodDate = currentDate;
             data_temp[index].nbData = 0;
           }
@@ -164,7 +164,7 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, data_msg_t
         {
           data_temp[index].temp.f32 /= nbItems;
         }
-        histogram_insert(&data_temp[index].histo, data_temp[index].temp);
+        histogram_insert(&data_temp[index].histo, &data_temp[index].temp);
         data_temp[index].nbData = 0;
       }
       break;

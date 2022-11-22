@@ -65,8 +65,7 @@ static void anemometer_do_calcul( TimerHandle_t xTimer )
   {
     data_msg_t msg;
     msg.type = WIND_SPEED;
-    msg.container = FLOAT;
-    msg.value.f = count * ANEMOMETER_CONVERTER;
+    variant_f32(&msg.value, count * ANEMOMETER_CONVERTER);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }

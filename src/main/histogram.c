@@ -14,14 +14,14 @@ STATUS histogram_init(histogram_t* h, uint32_t nbItems)
   return s;
 }
 
-void histogram_insert(histogram_t* h, variant_t v)
+void histogram_insert(histogram_t* h, variant_t* v)
 {
   if (h->current_index >= h->nbitems)
   {
     h->current_index = 0;
     h->bFill = true;
   }
-  h->datas[h->current_index++] = v;
+  h->datas[h->current_index++] = *v;
 }
 
 STATUS histogram_get(histogram_t* h, uint32_t index, variant_t* v)

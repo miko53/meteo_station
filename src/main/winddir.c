@@ -151,8 +151,7 @@ void winddir_do_calcul(TimerHandle_t xTimer)
   {
     data_msg_t msg;
     msg.type = WIND_DIR;
-    msg.container = INTEGER_32;
-    msg.value.i = winddir_get_angle(direction);
+    variant_u32(&msg.value, winddir_get_angle(direction));
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }
