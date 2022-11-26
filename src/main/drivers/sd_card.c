@@ -65,22 +65,21 @@ STATUS sd_card_init(char* mount_point)
       if (ret == ESP_FAIL)
       {
         log_info_print("Failed to mount filesystem. ");
+        s = STATUS_ERROR;
       }
       else
       {
         log_info_print("Failed to initialize the card (%s). ", esp_err_to_name(ret));
       }
-      s = STATUS_ERROR;
     }
     else
+    {
       log_info_print("Filesystem mounted");
+      sdmmc_card_print_info(stdout, sd_card_dev);
+      sd_card_correctly_mounted = true;
+    }
   }
 
-  if (s == STATUS_OK)
-  {
-    sdmmc_card_print_info(stdout, sd_card_dev);
-    sd_card_correctly_mounted = true;
-  }
   return s;
 }
 

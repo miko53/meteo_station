@@ -20,55 +20,135 @@
 #include "winddir.h"
 #include "ctrl.h"
 
-void app_main(void)
+void panic(void);
+
+void driver_init(void)
+{
+  STATUS s;
+  s = io_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("io_init failed!");
+    panic();
+  }
+
+  analog_display_efuse_config();
+
+  s = i2c_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("i2c_init failed!");
+    panic();
+  }
+
+  s = pcf_8523_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("pcf_8523_init failed!");
+    panic();
+  }
+
+  s = ser_lcd_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("ser_lcd_init failed!");
+    panic();
+  }
+}
+
+void middleware_init(void)
 {
   STATUS s;
 
-  io_init();
-  analog_display_efuse_config();
+  s = button_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("button_init failed!");
+    panic();
+  }
 
+  s = screen_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("screen_init failed!");
+    panic();
+  }
+
+  s = menu_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("menu_init failed!");
+    panic();
+  }
+
+  s = sd_card_init(SD_CARD_MOUNT_POINT);
+  if (s != STATUS_OK)
+  {
+    log_error_print("sd_card_init failed! --> desactivated");
+    panic();
+  }
+}
+
+void app_init(void)
+{
+  STATUS s;
+
+  s = filelog_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("filelog_init failed!");
+    panic();
+  }
+
+  s = ctrl_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("ctrl_init failed!");
+    panic();
+  }
+
+  QueueHandle_t ctrDataQueue = ctrl_get_data_queue();
+
+  s = rainmeter_init(ctrDataQueue);
+  if (s != STATUS_OK)
+  {
+    log_error_print("rainmeter_init failed!");
+    panic();
+  }
+
+  s = anemometer_init(ctrDataQueue);
+  if (s != STATUS_OK)
+  {
+    log_error_print("anemometer_init failed!");
+    panic();
+  }
+
+  s = winddir_init(ctrDataQueue);
+  if (s != STATUS_OK)
+  {
+    log_error_print("winddir_init failed!");
+    panic();
+  }
+}
+
+void app_main(void)
+{
   setenv("TZ", "CEST", 1);
   tzset();
 
-  s = i2c_init();
-  log_info_print("i2c status s=%d\n", s);
-
-  pcf_8523_init();
-
-  s = ser_lcd_init();
-  log_info_print("ser_lcd status s=%d\n", s);
-
-  s = button_init();
-  log_info_print("button status s=%d\n", s);
-
-  s = screen_init();
-  log_info_print("screen status s=%d\n", s);
-
-  s = menu_init();
-  log_info_print("menu status s=%d\n", s);
-
-  s = sd_card_init(SD_CARD_MOUNT_POINT);
-  log_info_print("sdcard init s=%d\n", s);
+  driver_init();
+  middleware_init();
 
   struct tm dateTime;
   pcf8523_get_date(&dateTime);
   date_set_localtime(&dateTime);
 
-  s = filelog_init();
-  log_info_print("filelog status s=%d\n", s);
+  app_init();
+  log_info_print("end of initialisation: everything is ok...");
+}
 
-  s = ctrl_init();
-  log_info_print("ctrl status s=%d\n", s);
 
-  QueueHandle_t ctrDataQueue = ctrl_get_data_queue();
-
-  s = rainmeter_init(ctrDataQueue);
-  log_info_print("rainmeter status s=%d\n", s);
-
-  s = anemometer_init(ctrDataQueue);
-  log_info_print("anemometer status s=%d\n", s);
-
-  s = winddir_init(ctrDataQueue);
-  log_info_print("winddir status s=%d\n", s);
-
+void panic(void)
+{
+  while (1);
 }

@@ -3,11 +3,16 @@
 #include "drivers/io.h"
 #include <assert.h>
 
-void io_init(void)
+STATUS io_init(void)
 {
+  STATUS s;
+  s = STATUS_OK;
   esp_err_t err;
   err = gpio_install_isr_service(0);
-  assert(err == ESP_OK);
+  if (err != ESP_OK)
+    s = STATUS_ERROR;
+
+  return s;
 }
 
 STATUS io_configure_output(uint32_t gpio_id, bool initial_level)

@@ -63,7 +63,7 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
   if (ctrl_data_queue != NULL)
   {
     data_msg_t msg;
-    msg.type = RAIN;
+    msg.sensor = RAIN;
     variant_f32(&msg.value, count * RAINMETER_CONVERTER);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }

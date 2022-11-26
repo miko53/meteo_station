@@ -14,7 +14,7 @@ typedef enum
 
 typedef struct
 {
-  data_type_t type;
+  data_type_t sensor;
   variant_t value;
 } data_msg_t;
 

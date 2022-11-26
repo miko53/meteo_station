@@ -3,6 +3,8 @@
 #include "filelog.h"
 #include "log.h"
 #include "data_defs.h"
+#include "data_ope.h"
+#include "data_ope_config.h"
 #include "libs.h"
 
 #define CTRL_NB_MSG       (20)
@@ -30,10 +32,13 @@ STATUS ctrl_init(void)
       s = STATUS_ERROR;
   }
 
+  if (s == STATUS_OK)
+    s = data_ope_init(date_ope_config_get(), date_ope_config_nbItems());
+
   return s;
 }
 
-QueueHandle_t ctrl_get_data_queue()
+QueueHandle_t ctrl_get_data_queue(void)
 {
   return ctrl_dataReception;
 }
@@ -51,6 +56,7 @@ static void ctrl_task(void* arg)
     {
       log_dbg_print("Data Reception");
       ctrl_display_data_reception(&dataMsg);
+      data_ope_add_sample(dataMsg.sensor, &dataMsg.value);
       ctrl_log_data(&dataMsg);
     }
     else
@@ -64,7 +70,7 @@ static void ctrl_task(void* arg)
 void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed,  data_msg_t* pData)
 {
   char* typeDataStr;
-  switch (pData->type)
+  switch (pData->sensor)
   {
     case RAIN:
       typeDataStr = "rain";
@@ -124,12 +130,14 @@ static void ctrl_log_data(data_msg_t* pDataMsg)
 
 static void ctrl_display_data_reception(data_msg_t* pDataMsg)
 {
-  switch (pDataMsg->type)
+  switch (pDataMsg->sensor)
   {
     case HUMIDITY:
       break;
+
     case TEMPERATURE:
       break;
+
     case RAIN:
       log_info_print("RAIN %f mm", pDataMsg->value.f32);
       break;
