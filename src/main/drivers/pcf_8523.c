@@ -14,7 +14,7 @@
 #define PCF8523_SECOND_REG            (3)
 
 static void pcf8523_set_switchOverInStandardMode(void);
-static STATUS pcff8523_write_reg(uint8_t reg, uint8_t value);
+static STATUS pcf8523_write_reg(uint8_t reg, uint8_t value);
 static uint8_t pcf8523_read_reg(uint8_t reg);
 static uint8_t bcd2bin(uint8_t bcdValue);
 static uint8_t bin2bcd(uint8_t binValue);
@@ -59,6 +59,7 @@ static void pcf8523_set_switchOverInStandardMode(void)
   uint8_t ctrl3;
   ctrl3 = pcf8523_read_reg(PCF8523_CTRL3_REG);
   ctrl3 &= ~0xE0;
+  pcf8523_write_reg(PCF8523_CTRL3_REG, ctrl3);
 }
 
 bool pcf8523_hasLostPower(void)
@@ -81,7 +82,7 @@ uint8_t pcf8523_read_reg(uint8_t reg)
   return result[0];
 }
 
-STATUS pcff8523_write_reg(uint8_t reg, uint8_t value)
+STATUS pcf8523_write_reg(uint8_t reg, uint8_t value)
 {
   uint8_t buffer[2];
   STATUS s;
