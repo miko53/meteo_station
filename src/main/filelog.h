@@ -18,6 +18,8 @@ extern "C" {
 extern STATUS filelog_init(void);
 extern filelog_msg* filelog_allocate_msg(void);
 extern STATUS filelog_write(filelog_msg* pData);
+extern void filelog_set_config(bool fileLogConfig);
+extern bool filelog_get_config(void);
 
 #ifdef __cplusplus
 }

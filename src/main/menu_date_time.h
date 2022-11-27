@@ -5,5 +5,7 @@
 #include "screen.h"
 
 extern void menu_display_date_screen(screen_t* screen);
+extern void menu_date_display_date_screen(screen_t* screen);
+extern void menu_date_display_time_screen(screen_t* screen);
 
 #endif /* __MENU_DATE_TIME_H__ */

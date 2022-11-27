@@ -1,6 +1,7 @@
 #include "menu.h"
 #include "drivers/ser_lcd.h"
 #include "menu_date_time.h"
+#include "menu_config.h"
 #include "drivers/pcf_8523.h"
 #include "os.h"
 #include "drivers/sd_card.h"
@@ -10,7 +11,6 @@
 static void menu_display_date_time_screen(screen_t* pScreen);
 static void menu_enter_date_screen(screen_t* pScreen);
 static void menu_exit_date_screen(screen_t* pScreen);
-static void menu_display_sdcard_screen(screen_t* pScreen);
 static void menu_enter_sdcard_screen(screen_t* pScreen);
 
 screen_t splash_screen =
@@ -59,19 +59,6 @@ screen_t sd_card_infos =
   .on_exit = NULL,
 };
 
-screen_t config_screen =
-{
-  .line_1 = "METEO STATION   ",
-  .line_2 = "CONFIGURATION...",
-  .display = screen_generic_display,
-  .on_cmd = menu_display_date_screen,
-  .on_cmd_long_press = NULL,
-  .on_plus = menu_display_splash_screen,
-  .on_minus = menu_display_sdcard_screen,
-  .on_enter = NULL,
-  .on_exit = NULL,
-};
-
 static TimerHandle_t date_time_handle;
 static void date_time_refresh_fun( TimerHandle_t xTimer );
 
@@ -79,11 +66,6 @@ STATUS menu_init(void)
 {
   screen_change_to(&splash_screen);
   return STATUS_OK;
-}
-
-void menu_display_config_screen(screen_t* screen)
-{
-  screen_change_to(&config_screen);
 }
 
 void menu_display_splash_screen(screen_t* screen)

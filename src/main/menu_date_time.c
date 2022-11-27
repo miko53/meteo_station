@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "menu_date_time.h"
+#include "menu_config.h"
 #include "screen.h"
 #include "menu.h"
 #include "drivers/ser_lcd.h"
@@ -62,8 +63,6 @@ time_context_t time_context =
   .cursor_pos_c = 4
 };
 
-static void menu_date_display_date_screen(screen_t* screen);
-static void menu_date_display_time_screen(screen_t* screen);
 static void menu_date_goto_modif_date_screen(screen_t* screen);
 static void menu_date_goto_modif_time_screen(screen_t* screen);
 
@@ -89,7 +88,7 @@ screen_t config_date_screen =
   .on_cmd = menu_date_goto_modif_date_screen,
   .on_cmd_long_press = menu_display_config_screen,
   .on_plus = menu_date_display_time_screen,
-  .on_minus = menu_date_display_time_screen,
+  .on_minus = menu_display_config_activate_filelog_screen,
   .on_enter = NULL,
   .on_exit = NULL,
 };
@@ -101,7 +100,7 @@ screen_t config_time_screen =
   .display = screen_generic_display,
   .on_cmd = menu_date_goto_modif_time_screen,
   .on_cmd_long_press = menu_display_config_screen,
-  .on_plus = menu_date_display_date_screen,
+  .on_plus = menu_display_config_activate_filelog_screen,
   .on_minus = menu_date_display_date_screen,
 };
 
@@ -131,13 +130,12 @@ screen_t config_time_modif_screen =
   .on_exit = time_screen_on_exit,
 };
 
-
-static void menu_date_display_date_screen(screen_t* screen)
+void menu_date_display_date_screen(screen_t* screen)
 {
   screen_change_to(&config_date_screen);
 }
 
-static void menu_date_display_time_screen(screen_t* screen)
+void menu_date_display_time_screen(screen_t* screen)
 {
   screen_change_to(&config_time_screen);
 }
@@ -151,7 +149,6 @@ void menu_date_goto_modif_time_screen(screen_t* screen)
 {
   screen_change_to(&config_time_modif_screen);
 }
-
 
 void date_screen_on_enter(screen_t* screen)
 {

@@ -18,6 +18,7 @@
 static QueueHandle_t filelog_msgHandle = NULL;
 static TaskHandle_t filelog_taskHandle = NULL;
 static QueueHandle_t filelog_msgAllocatedHandle = NULL;
+static bool filelog_activate;
 
 static void filelog_task(void* arg);
 static FILE* filelog_prepare_and_create_file(struct tm* pDate);
@@ -28,6 +29,8 @@ static STATUS filelog_create_cascaded_folder(char* filename);
 static void filelog_remove_filename(char* abspath);
 static STATUS filelog_create_folder(char* path);
 static STATUS filelog_pre_allocate_msg(QueueHandle_t* msgReserveQueue);
+static void filelog_close_file(FILE** ppFile);
+static void filelog_free_msg(filelog_msg* msg);
 
 STATUS filelog_init(void)
 {
@@ -93,6 +96,13 @@ filelog_msg* filelog_allocate_msg()
   return pMsg;
 }
 
+void filelog_free_msg(filelog_msg* msg)
+{
+  BaseType_t rc;
+  rc = xQueueSend(filelog_msgAllocatedHandle, &msg, 0);
+  assert(rc == pdTRUE);
+}
+
 STATUS filelog_write(filelog_msg* pData)
 {
   STATUS s;
@@ -109,36 +119,52 @@ static void filelog_task(void* arg)
 {
   filelog_msg* msg;
   TickType_t delay;
-  BaseType_t rc;
   FILE* pCurrentFile = NULL;
   struct tm newDate;
   struct tm currentDate;
-  pcf8523_get_date(&currentDate);
+  bool isPreviouslyActivated;
+  bool isActivated;
 
-  pCurrentFile = filelog_prepare_and_create_file(&currentDate);
   delay = OS_WAIT_FOREVER;
 
   while (1)
   {
     if (xQueueReceive(filelog_msgHandle, &msg, delay) == pdTRUE)
     {
-      log_info_print("filelog msg reception '%s'\n", msg->data);
-      pcf8523_get_date(&newDate);
-      if (filelog_date_has_changed(&newDate, &currentDate))
+      isActivated = filelog_get_config();
+      if ((isActivated == true) && (isPreviouslyActivated == false))
       {
-        fclose(pCurrentFile);
-        currentDate = newDate;
+        filelog_close_file(&pCurrentFile);
+        pcf8523_get_date(&currentDate);
         pCurrentFile = filelog_prepare_and_create_file(&currentDate);
+        isPreviouslyActivated = true;
       }
 
-      if (pCurrentFile != NULL)
+      if ((isActivated == false) && (isPreviouslyActivated == true))
       {
-        fputs(msg->data, pCurrentFile);
-        fflush( pCurrentFile);
-        fsync(fileno(pCurrentFile));
+        filelog_close_file(&pCurrentFile);
       }
-      rc = xQueueSend(filelog_msgAllocatedHandle, &msg, 0);
-      assert(rc == pdTRUE);
+
+      if (isActivated)
+      {
+        log_info_print("filelog msg reception '%s'", msg->data);
+        pcf8523_get_date(&newDate);
+        if (filelog_date_has_changed(&newDate, &currentDate))
+        {
+          filelog_close_file(&pCurrentFile);
+          currentDate = newDate;
+          pCurrentFile = filelog_prepare_and_create_file(&currentDate);
+        }
+
+        if (pCurrentFile != NULL)
+        {
+          fputs(msg->data, pCurrentFile);
+          fflush( pCurrentFile);
+          fsync(fileno(pCurrentFile));
+        }
+      }
+
+      filelog_free_msg(msg);
     }
   }
 }
@@ -190,6 +216,15 @@ static FILE* filelog_create_file(char* filename)
     //log_warning_print("unable to create/open file\n");
   }
   return f;
+}
+
+static void filelog_close_file(FILE** ppFile)
+{
+  if (*ppFile != NULL)
+  {
+    fclose(*ppFile);
+    *ppFile = NULL;
+  }
 }
 
 static STATUS filelog_create_cascaded_folder(char* filename)
@@ -274,4 +309,13 @@ static STATUS filelog_create_folder(char* path)
   return s;
 }
 
+void filelog_set_config(bool fileLogConfig)
+{
+  filelog_activate = fileLogConfig;
+}
+
+bool filelog_get_config(void)
+{
+  return filelog_activate;
+}
 

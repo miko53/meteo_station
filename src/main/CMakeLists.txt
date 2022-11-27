@@ -33,6 +33,7 @@ SET(APP_SOURCE main.c
                screen.c
                menu.c
                menu_date_time.c
+               menu_config.c
                filelog.c
                libs.c
                ctrl.c
@@ -42,6 +43,7 @@ SET(APP_SOURCE main.c
                data_ope.c
                histogram.c
                data_ope_config.c
+               
 #               main_test.c
                )
 SET(APP_INCLUDE_DIR include)

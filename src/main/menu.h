@@ -9,9 +9,8 @@ extern "C" {
 #endif
 
 extern STATUS menu_init(void);
-extern void menu_display_config_screen(screen_t* screen);
 extern void menu_display_splash_screen(screen_t* screen);
-
+extern void menu_display_sdcard_screen(screen_t* pScreen);
 
 #ifdef __cplusplus
 }
