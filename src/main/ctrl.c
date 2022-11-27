@@ -16,6 +16,8 @@ static void ctrl_task(void* arg);
 static void ctrl_log_data(data_msg_t* pDataMsg);
 static void ctrl_display_data_reception(data_msg_t* pDataMsg);
 
+void insert_calculated_data(uint32_t indexSensor, variant_t* pData);
+
 STATUS ctrl_init(void)
 {
   STATUS s;
@@ -33,7 +35,15 @@ STATUS ctrl_init(void)
   }
 
   if (s == STATUS_OK)
-    s = data_ope_init(date_ope_config_get(), date_ope_config_nbItems());
+  {
+    data_ope_cnf dataConfig;
+    dataConfig.pDataOpeList = date_ope_config_get();
+    dataConfig.nbItemsInList = date_ope_config_nbItems();
+    dataConfig.on_new_calculated_data = insert_calculated_data;
+    s = data_ope_init(&dataConfig);
+    if (s == STATUS_OK)
+      data_ope_activate_all(); //TODO
+  }
 
   return s;
 }
@@ -67,10 +77,10 @@ static void ctrl_task(void* arg)
 }
 
 
-void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed,  data_msg_t* pData)
+void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, uint32_t indexSensor, variant_t* pData)
 {
   char* typeDataStr;
-  switch (pData->sensor)
+  switch (indexSensor)
   {
     case RAIN:
       typeDataStr = "rain";
@@ -98,15 +108,34 @@ void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed,  data_
   struct tm dateTime;
   date_get_localtime(&dateTime);
 
-  if (pData->value.type == INTEGER_32)
+  if (pData->type == INTEGER_32)
   {
     snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%d\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
-             dateTime.tm_sec, pData->value.i32);
+             dateTime.tm_sec, pData->i32);
   }
   else
   {
     snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%f\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
-             dateTime.tm_sec, pData->value.f32);
+             dateTime.tm_sec, pData->f32);
+  }
+}
+
+void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
+{
+  log_info_print("insert calculated data");
+  STATUS s;
+  filelog_msg* pMsg;
+  pMsg = filelog_allocate_msg();
+  if (pMsg != NULL)
+  {
+    ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, true, indexSensor, pData);
+    s = filelog_write(pMsg);
+    if (s != STATUS_OK)
+      log_info_print("error trying to send msg\n");
+  }
+  else
+  {
+    log_info_print("error trying to allocate msg\n");
   }
 }
 
@@ -117,7 +146,7 @@ static void ctrl_log_data(data_msg_t* pDataMsg)
   pMsg = filelog_allocate_msg();
   if (pMsg != NULL)
   {
-    ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, false, pDataMsg);
+    ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, false, pDataMsg->sensor, &pDataMsg->value);
     s = filelog_write(pMsg);
     if (s != STATUS_OK)
       log_info_print("error trying to send msg\n");

@@ -53,11 +53,18 @@ typedef struct
   bool bStoreInSD;
 } data_operation_t;
 
+typedef struct
+{
+  data_operation_t* pDataOpeList;
+  uint32_t nbItemsInList;
+  void (*on_new_calculated_data)(uint32_t operationIndex, variant_t* data);
+} data_ope_cnf;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList);
+extern STATUS data_ope_init(data_ope_cnf* pConfig);
 extern void data_ope_add_sample(data_type_t dataType, variant_t* pSample);
 
 extern histogram_t* data_ope_get_histo(uint32_t indexOperation);

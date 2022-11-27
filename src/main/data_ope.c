@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "libs.h"
 #include "histogram.h"
+#include "log.h"
 
 typedef struct
 {
@@ -12,11 +13,10 @@ typedef struct
   struct tm beginPeriodDate;
   bool lastDateIsValid;
   bool activated;
-} data_;
+} data_ope_context;
 
-static data_* data_temp;
-static data_operation_t* data_ope_list;
-static uint32_t data_ope_nbItems;
+static data_ope_context* data_samples;
+static data_ope_cnf data_ope_config;
 
 static void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t* pSample);
 static void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, variant_t* pData);
@@ -24,30 +24,30 @@ static bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, i
 static bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 static bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 
-STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList)
+STATUS data_ope_init(data_ope_cnf* pConfig)
 {
   STATUS s;
   s = STATUS_OK;
 
-  data_ope_list = pDataOpeList;
-  data_ope_nbItems = nbItemsInList;
+  data_ope_config = *pConfig;
 
-  fprintf(stdout, "array = %p, nbItems = %d\n", data_ope_list, data_ope_nbItems);
+  fprintf(stdout, "array = %p, nbItems = %d\n", data_ope_config.pDataOpeList, data_ope_config.nbItemsInList);
 
-  data_temp = calloc(data_ope_nbItems, sizeof(data_));
-  if (data_temp == NULL)
+  data_samples = calloc(data_ope_config.nbItemsInList, sizeof(data_ope_context));
+  if (data_samples == NULL)
     s = STATUS_ERROR;
 
-  for (uint32_t i = 0; ((i < data_ope_nbItems) && (s == STATUS_OK)); i++)
+  for (uint32_t i = 0; ((i < data_ope_config.nbItemsInList) && (s == STATUS_OK)); i++)
   {
-    s = histogram_init(&data_temp[i].histo, data_ope_list[i].history_depth);
+    s = histogram_init(&data_samples[i].histo, data_ope_config.pDataOpeList[i].history_depth);
   }
 
-  for (uint32_t i = 0; ((i < data_ope_nbItems) && (s == STATUS_OK)); i++)
+  for (uint32_t i = 0; ((i < data_ope_config.nbItemsInList) && (s == STATUS_OK)); i++)
   {
-    if (data_ope_list[i].calcul_period.type == SLIDING_PERIOD)
+    if (data_ope_config.pDataOpeList[i].calcul_period.type == SLIDING_PERIOD)
     {
-      uint32_t r = (data_ope_list[i].calcul_period.period_sec % data_ope_list[i].refresh_period_sec);
+      uint32_t r = (data_ope_config.pDataOpeList[i].calcul_period.period_sec %
+                    data_ope_config.pDataOpeList[i].refresh_period_sec);
       if (r != 0)
       {
         fprintf(stdout, "calcul period not adequate with refresh_period for i = %d\n", i);
@@ -62,22 +62,22 @@ STATUS data_ope_init(data_operation_t pDataOpeList[], uint32_t nbItemsInList)
 histogram_t* data_ope_get_histo(uint32_t indexOperation)
 {
   histogram_t* r;
-  if (indexOperation >= data_ope_nbItems)
+  if (indexOperation >= data_ope_config.nbItemsInList)
     r = NULL;
   else
-    r = &data_temp[indexOperation].histo;
+    r = &data_samples[indexOperation].histo;
   return r;
 }
 
 void data_ope_add_sample(data_type_t dataType, variant_t* pSample)
 {
   data_operation_t* pCurrent;
-  for (uint32_t i = 0; i < data_ope_nbItems; i++)
+  for (uint32_t i = 0; i < data_ope_config.nbItemsInList; i++)
   {
-    pCurrent = &data_ope_list[i];
+    pCurrent = &data_ope_config.pDataOpeList[i];
     if (pCurrent->sensor == dataType)
     {
-      data_* pData = &data_temp[i];
+      data_ope_context* pData = &data_samples[i];
       if (pData->activated)
         data_ope_do_calcul(i, pCurrent, pSample);
     }
@@ -89,9 +89,9 @@ void data_ope_activate_all(void)
   struct tm beginPeriodDate;
   date_get_localtime(&beginPeriodDate);
 
-  for (uint32_t i = 0; i < data_ope_nbItems; i++)
+  for (uint32_t i = 0; i < data_ope_config.nbItemsInList; i++)
   {
-    data_* pData = &data_temp[i];
+    data_ope_context* pData = &data_samples[i];
     pData->beginPeriodDate = beginPeriodDate;
     pData->lastDateIsValid = true;
     pData->activated = true;
@@ -105,10 +105,10 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t*
   {
     case FIXED_PERIOD:
       {
-        if (data_temp[index].lastDateIsValid == false)
+        if (data_samples[index].lastDateIsValid == false)
         {
-          date_get_localtime(&data_temp[index].beginPeriodDate);
-          data_temp[index].lastDateIsValid = true;
+          date_get_localtime(&data_samples[index].beginPeriodDate);
+          data_samples[index].lastDateIsValid = true;
         }
         else
         {
@@ -122,15 +122,15 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t*
           switch (pOperation->calcul_period.f_period.unit)
           {
             case BY_HOUR:
-              hasDiff = data_ope_is_hour_diff(&currentDate, &data_temp[index].beginPeriodDate, &diff);
+              hasDiff = data_ope_is_hour_diff(&currentDate, &data_samples[index].beginPeriodDate, &diff);
               break;
 
             case BY_DAY:
-              hasDiff = data_ope_is_day_diff(&currentDate, &data_temp[index].beginPeriodDate, &diff);
+              hasDiff = data_ope_is_day_diff(&currentDate, &data_samples[index].beginPeriodDate, &diff);
               break;
 
             case BY_MONTH:
-              hasDiff = data_ope_is_month_diff(&currentDate, &data_temp[index].beginPeriodDate, &diff);
+              hasDiff = data_ope_is_month_diff(&currentDate, &data_samples[index].beginPeriodDate, &diff);
               break;
 
             default:
@@ -139,14 +139,17 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t*
 
           if ((hasDiff) && ((uint32_t) diff >= pOperation->calcul_period.f_period.period))
           {
-            fprintf(stdout, "diff detected (index = %d) do operation on (%d nb Data)\n", index, data_temp[index].nbData);
+            fprintf(stdout, "diff detected (index = %d) do operation on (%d nb Data)\n", index, data_samples[index].nbData);
             if (pOperation->operation == OPE_AVERAGE)
             {
-              data_temp[index].temp.f32 /= data_temp[index].nbData;
+              data_samples[index].temp.f32 /= data_samples[index].nbData;
             }
-            histogram_insert(&data_temp[index].histo, &data_temp[index].temp);
-            data_temp[index].beginPeriodDate = currentDate;
-            data_temp[index].nbData = 0;
+            histogram_insert(&data_samples[index].histo, &data_samples[index].temp);
+            if (data_ope_config.on_new_calculated_data != NULL)
+              data_ope_config.on_new_calculated_data(index, &data_samples[index].temp);
+
+            data_samples[index].beginPeriodDate = currentDate;
+            data_samples[index].nbData = 0;
           }
         }
       }
@@ -156,16 +159,19 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t*
       data_ope_prepare_and_insert(index, pOperation, pSample);
 
       nbItems = pOperation->calcul_period.period_sec / pOperation->refresh_period_sec;
-      fprintf(stdout, "nbItems = %d, nbData = %d\n", nbItems, data_temp[index].nbData);
-      if (data_temp[index].nbData >= nbItems)
+      log_info_print("index = %d, nbItems = %d, nbData = %d", index, nbItems, data_samples[index].nbData);
+      if (data_samples[index].nbData >= nbItems)
       {
         fprintf(stdout, "do operation\n");
         if (pOperation->operation == OPE_AVERAGE)
         {
-          data_temp[index].temp.f32 /= nbItems;
+          data_samples[index].temp.f32 /= nbItems;
         }
-        histogram_insert(&data_temp[index].histo, &data_temp[index].temp);
-        data_temp[index].nbData = 0;
+        histogram_insert(&data_samples[index].histo, &data_samples[index].temp);
+        if (data_ope_config.on_new_calculated_data != NULL)
+          data_ope_config.on_new_calculated_data(index, &data_samples[index].temp);
+
+        data_samples[index].nbData = 0;
       }
       break;
   }
@@ -175,42 +181,42 @@ void data_ope_prepare_and_insert(uint32_t index, data_operation_t* pOperation, v
 {
   if (pOperation->operation == OPE_MAX)
   {
-    if (data_temp[index].nbData == 0)
+    if (data_samples[index].nbData == 0)
     {
-      data_temp[index].temp = *pData;
+      data_samples[index].temp = *pData;
     }
     else
     {
       bool b;
-      b = variant_is_higher(pData, &data_temp[index].temp, data_temp[index].temp.type);
+      b = variant_is_higher(pData, &data_samples[index].temp, data_samples[index].temp.type);
       if (b)
-        data_temp[index].temp = *pData;
+        data_samples[index].temp = *pData;
     }
   }
   else if (pOperation->operation == OPE_MIN)
   {
-    if (data_temp[index].nbData == 0)
+    if (data_samples[index].nbData == 0)
     {
-      data_temp[index].temp = *pData;
+      data_samples[index].temp = *pData;
     }
     else
     {
       bool b;
-      b = variant_is_lower(pData, &data_temp[index].temp, data_temp[index].temp.type);
+      b = variant_is_lower(pData, &data_samples[index].temp, data_samples[index].temp.type);
       if (b)
-        data_temp[index].temp = *pData;
+        data_samples[index].temp = *pData;
     }
   }
   else
   {
-    if (data_temp[index].nbData == 0)
-      data_temp[index].temp = *pData;
+    if (data_samples[index].nbData == 0)
+      data_samples[index].temp = *pData;
     else
     {
-      variant_add(&data_temp[index].temp, &data_temp[index].temp, pData, data_temp[index].temp.type);
+      variant_add(&data_samples[index].temp, &data_samples[index].temp, pData, data_samples[index].temp.type);
     }
   }
-  data_temp[index].nbData++;
+  data_samples[index].nbData++;
 }
 
 
