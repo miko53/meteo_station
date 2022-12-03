@@ -278,8 +278,13 @@ START_TEST(test_date_fp_one_hour)
   STATUS s;
   int32_t nbItemsHisto;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
 
-  s = data_ope_init(data_ope_config_list_test1, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_test1;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   histo = data_ope_get_histo(0);
@@ -358,8 +363,13 @@ START_TEST(test_date_fp_one_day)
   variant_t data;
   variant_t r;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
 
-  s = data_ope_init(data_ope_config_list_test2, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_test2;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   histo = data_ope_get_histo(0);
@@ -430,8 +440,13 @@ START_TEST(test_date_fp_two_months)
   variant_t data;
   variant_t r;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
 
-  s = data_ope_init(data_ope_config_list_test3, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_test3;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   histo = data_ope_get_histo(0);

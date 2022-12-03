@@ -1,5 +1,6 @@
 
 if(UNIT_TEST)
+add_compile_definitions(UNIT_TEST)
 include_directories(include)
 include_directories(.)
 add_executable(tu_data_test 

@@ -42,7 +42,12 @@ START_TEST(test_data_ope_cumul_01)
   int32_t nbItemsHisto;
   histogram_t* histo;
 
-  s = data_ope_init(get_tu_operation_list_test_1(), get_tu_operation_nb_items_test_1());
+  data_ope_cnf opeConfig;
+  opeConfig.nbItemsInList = get_tu_operation_nb_items_test_1();
+  opeConfig.pDataOpeList = get_tu_operation_list_test_1();
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   data_ope_activate_all();
@@ -107,8 +112,12 @@ START_TEST(test_data_ope_cumul_02)
   variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
+  opeConfig.nbItemsInList = get_tu_operation_nb_items_test_2();
+  opeConfig.pDataOpeList = get_tu_operation_list_test_2();
+  opeConfig.on_new_calculated_data = NULL;
 
-  s = data_ope_init(get_tu_operation_list_test_2(), get_tu_operation_nb_items_test_2());
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   data_ope_activate_all();
@@ -156,8 +165,13 @@ START_TEST(test_data_ope_avg_01)
   variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
 
-  s = data_ope_init(data_ope_config_list_avg_1, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_avg_1;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   data_ope_activate_all();
@@ -206,8 +220,13 @@ START_TEST(test_data_ope_min_01)
   variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
 
-  s = data_ope_init(data_ope_config_list_min_1, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_min_1;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   data_ope_activate_all();
@@ -278,8 +297,13 @@ START_TEST(test_data_ope_max_01)
   variant_t r;
   int32_t nbItemsHisto;
   histogram_t* histo;
+  data_ope_cnf opeConfig;
 
-  s = data_ope_init(data_ope_config_list_max_1, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_max_1;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   data_ope_activate_all();
@@ -378,10 +402,19 @@ START_TEST(test_data_ope_robustness_1)
   STATUS s, s2;
   histogram_t* histo;
 
-  s = data_ope_init(data_ope_config_list_wrong_period, 1);
+  data_ope_cnf opeConfig;
+
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_wrong_period;
+  opeConfig.on_new_calculated_data = NULL;
+
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_ERROR);
 
-  s = data_ope_init(data_ope_config_list_avg_2, 1);
+  opeConfig.nbItemsInList = 1;
+  opeConfig.pDataOpeList = data_ope_config_list_avg_2;
+  opeConfig.on_new_calculated_data = NULL;
+  s = data_ope_init(&opeConfig);
   ck_assert(s == STATUS_OK);
 
   data_ope_activate_all();
