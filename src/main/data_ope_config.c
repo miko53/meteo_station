@@ -10,7 +10,7 @@ static data_operation_t data_ope_config_list[] =
   },
   {
     .sensor = WIND_SPEED, .refresh_period_sec = ANEMOMETER_WAIT_TIME,
-    .calcul_period = { .type = SLIDING_PERIOD, .period_sec = 3600 },
+    .calcul_period = { .type = SLIDING_PERIOD, .period_sec = 10 },
     .operation = OPE_AVERAGE, .history_depth = 24, .bStoreInSD = false
   },
   {
@@ -25,7 +25,7 @@ static data_operation_t data_ope_config_list[] =
   },
   {
     .sensor = WIND_DIR, .refresh_period_sec = WINDDIR_WAIT_TIME,
-    .calcul_period = { .type = SLIDING_PERIOD, .period_sec = 3600 },
+    .calcul_period = { .type = SLIDING_PERIOD, .period_sec = 10 },
     .operation = OPE_AVERAGE, .history_depth = 24, .bStoreInSD = false
   },
   {

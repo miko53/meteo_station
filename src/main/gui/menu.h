@@ -11,6 +11,7 @@ extern "C" {
 extern STATUS menu_init(void);
 extern void menu_display_splash_screen(screen_t* screen);
 extern void menu_display_sdcard_screen(screen_t* pScreen);
+extern void menu_display_date_time_screen(screen_t* pScreen);
 
 #ifdef __cplusplus
 }

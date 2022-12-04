@@ -6,9 +6,9 @@
 #include "os.h"
 #include "drivers/sd_card.h"
 #include "log.h"
+#include "menu_histogram.h"
 #include <string.h>
 
-static void menu_display_date_time_screen(screen_t* pScreen);
 static void menu_enter_date_screen(screen_t* pScreen);
 static void menu_exit_date_screen(screen_t* pScreen);
 static void menu_enter_sdcard_screen(screen_t* pScreen);
@@ -18,7 +18,7 @@ screen_t splash_screen =
   .line_1 = "METEO STATION   ",
   .line_2 = "          v0.0.0",
   .display = screen_generic_display,
-  .on_plus = menu_display_date_time_screen,
+  .on_plus = menu_histo_display_screen,
   .on_minus = menu_display_config_screen,
   .on_cmd_long_press = NULL,
   .on_cmd = NULL,
@@ -38,7 +38,7 @@ screen_t date_time_display_screen =
   .line_2 = time_line,
   .display = screen_generic_display,
   .on_plus = menu_display_sdcard_screen,
-  .on_minus = menu_display_splash_screen,
+  .on_minus = menu_histo_display_screen,
   .on_enter = menu_enter_date_screen,
   .on_exit = menu_exit_date_screen,
 };

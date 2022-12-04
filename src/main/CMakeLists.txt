@@ -31,10 +31,11 @@ SET(APP_SOURCE main.c
                drivers/analog.c
                drivers/io.c
                button.c
-               screen.c
-               menu.c
-               menu_date_time.c
-               menu_config.c
+               gui/screen.c
+               gui/menu.c
+               gui/menu_date_time.c
+               gui/menu_config.c
+               gui/menu_histogram.c
                filelog.c
                libs.c
                ctrl.c
@@ -47,7 +48,8 @@ SET(APP_SOURCE main.c
                
 #               main_test.c
                )
-SET(APP_INCLUDE_DIR include)
+               
+SET(APP_INCLUDE_DIR "include" "gui" ".")
 
 idf_component_register(SRCS ${APP_SOURCE}
                        INCLUDE_DIRS ${APP_INCLUDE_DIR})
