@@ -79,19 +79,67 @@ char* winddir_direction(winddir_direction_t dir)
   return r;
 }
 
+char* winddir_angle_to_direction(float angle)
+{
+  char* r;
+  r = "";
+  if ((angle >= 0.) && (angle < 22.5))
+  {
+    r = "N";
+  }
+  else if ((angle >= 22.5) && (angle < 67.5))
+  {
+    r = "N-E";
+  }
+  else if ((angle >= 67.5) && (angle < 112.5))
+  {
+    r = "E";
+  }
+  else if ((angle >= 112.5) && (angle < 157.5))
+  {
+    r = "S-E";
+  }
+  else if ((angle >= 157.5) && (angle < 202.5))
+  {
+    r = "S";
+  }
+  else if ((angle >= 202.5) && (angle < 247.5))
+  {
+    r = "S-O";
+  }
+  else if ((angle >= 247.5) && (angle < 292.5))
+  {
+    r = "O";
+  }
+  else if ((angle >= 292.5) && (angle < 337.5))
+  {
+    r = "N-O";
+  }
+  else if (angle >= 337.5)
+  {
+    r = "N";
+  }
+
+  return r;
+};
+
+
 uint32_t winddir_get_angle(winddir_direction_t dir)
 {
   uint32_t angle;
   switch (dir)
   {
-    case E:
-      angle = 90;
-      break;
     case N:
       angle = 0;
       break;
     case NE:
       angle = 45;
+      break;
+    case E:
+      angle = 90;
+      break;
+    case SE:
+      angle = 135;
       break;
     case NO:
       angle = 315;
@@ -101,9 +149,6 @@ uint32_t winddir_get_angle(winddir_direction_t dir)
       break;
     case S:
       angle = 180;
-      break;
-    case SE:
-      angle = 135;
       break;
     case SO:
       angle = 225;

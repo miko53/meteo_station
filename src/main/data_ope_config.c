@@ -5,6 +5,11 @@ static data_operation_t data_ope_config_list[] =
 {
   {
     .sensor = RAIN, .refresh_period_sec = RAINMETER_WAIT_TIME,
+    .calcul_period = { .type = SLIDING_PERIOD, .period_sec = 10},
+    .operation = OPE_CUMUL, .history_depth = 6, .bStoreInSD = true
+  },
+  {
+    .sensor = RAIN, .refresh_period_sec = RAINMETER_WAIT_TIME,
     .calcul_period = { .type = FIXED_PERIOD, .f_period = { .period = 1, .unit = BY_DAY }},
     .operation = OPE_CUMUL, .history_depth = 5, .bStoreInSD = true
   },

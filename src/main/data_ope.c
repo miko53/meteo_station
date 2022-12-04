@@ -59,6 +59,16 @@ STATUS data_ope_init(data_ope_cnf* pConfig)
   return s;
 }
 
+uint32_t data_ope_nb_operation(void)
+{
+  return data_ope_config.nbItemsInList;
+}
+
+data_operation_t* date_ope_get_operation(uint32_t indexOperation)
+{
+  return &data_ope_config.pDataOpeList[indexOperation];
+}
+
 histogram_t* data_ope_get_histo(uint32_t indexOperation)
 {
   histogram_t* r;

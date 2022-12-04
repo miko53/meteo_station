@@ -67,7 +67,11 @@ extern "C" {
 extern STATUS data_ope_init(data_ope_cnf* pConfig);
 extern void data_ope_add_sample(data_type_t dataType, variant_t* pSample);
 
+extern uint32_t data_ope_nb_operation(void);
+extern data_operation_t* date_ope_get_operation(uint32_t indexOperation);
+
 extern histogram_t* data_ope_get_histo(uint32_t indexOperation);
+
 extern void data_ope_activate_all(void);
 
 #ifdef __cplusplus
