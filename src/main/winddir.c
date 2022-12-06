@@ -48,29 +48,29 @@ char* winddir_direction(winddir_direction_t dir)
   char* r;
   switch (dir)
   {
-    case E:
-      r = "Est";
-      break;
     case N:
       r = "Nord";
       break;
     case NE:
       r = "Nord-Est";
       break;
-    case NO:
-      r = "Nord-Ouest";
-      break;
-    case O:
-      r = "Ouest";
-      break;
-    case S:
-      r = "Sud";
+    case E:
+      r = "Est";
       break;
     case SE:
       r = "Sud-Est";
       break;
+    case S:
+      r = "Sud";
+      break;
     case SO:
       r = "Sud-Ouest";
+      break;
+    case O:
+      r = "Ouest";
+      break;
+    case NO:
+      r = "Nord-Ouest";
       break;
     default:
       r = "?";
@@ -85,39 +85,39 @@ char* winddir_angle_to_direction(float angle)
   r = "";
   if ((angle >= 0.) && (angle < 22.5))
   {
-    r = "N";
+    r = "Nord";
   }
   else if ((angle >= 22.5) && (angle < 67.5))
   {
-    r = "N-E";
+    r = "N-Est";
   }
   else if ((angle >= 67.5) && (angle < 112.5))
   {
-    r = "E";
+    r = "Est";
   }
   else if ((angle >= 112.5) && (angle < 157.5))
   {
-    r = "S-E";
+    r = "S-Est";
   }
   else if ((angle >= 157.5) && (angle < 202.5))
   {
-    r = "S";
+    r = "Sud";
   }
   else if ((angle >= 202.5) && (angle < 247.5))
   {
-    r = "S-O";
+    r = "S-Ouest";
   }
   else if ((angle >= 247.5) && (angle < 292.5))
   {
-    r = "O";
+    r = "Ouest";
   }
   else if ((angle >= 292.5) && (angle < 337.5))
   {
-    r = "N-O";
+    r = "N-Ouest";
   }
   else if (angle >= 337.5)
   {
-    r = "N";
+    r = "Nord";
   }
 
   return r;
@@ -141,17 +141,17 @@ uint32_t winddir_get_angle(winddir_direction_t dir)
     case SE:
       angle = 135;
       break;
-    case NO:
-      angle = 315;
-      break;
-    case O:
-      angle = 270;
-      break;
     case S:
       angle = 180;
       break;
     case SO:
       angle = 225;
+      break;
+    case O:
+      angle = 270;
+      break;
+    case NO:
+      angle = 315;
       break;
     default:
       angle = 360;
@@ -200,5 +200,3 @@ void winddir_do_calcul(TimerHandle_t xTimer)
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }
-
-
