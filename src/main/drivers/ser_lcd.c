@@ -91,9 +91,9 @@ STATUS ser_lcd_init(void)
 
 void ser_lcd_power_on(void)
 {
-  ser_lcd_power_state = true;
   io_set_level(SER_LCD_GPIO_POWER, true);
   thread_msleep(2000);
+  ser_lcd_power_state = true;
 }
 
 void ser_lcd_power_off(void)

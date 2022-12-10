@@ -64,6 +64,7 @@ static void date_time_refresh_fun( TimerHandle_t xTimer );
 
 STATUS menu_init(void)
 {
+  screen_set_default_screen(&splash_screen);
   screen_change_to(&splash_screen);
   return STATUS_OK;
 }
@@ -98,6 +99,7 @@ void menu_enter_date_screen(screen_t* pScreen)
 void date_time_refresh_fun( TimerHandle_t xTimer )
 {
   UNUSED(xTimer);
+
   struct tm currentDate;
   pcf8523_get_date(&currentDate);
   snprintf(date_line, DATE_STRING_SIZE, "   %.2d/%.2d/%.4d", currentDate.tm_mday, currentDate.tm_mon + 1,
