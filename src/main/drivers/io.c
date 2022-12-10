@@ -36,6 +36,18 @@ STATUS io_configure_output(uint32_t gpio_id, bool initial_level)
   return s;
 }
 
+STATUS io_set_level(uint32_t gpio_id, bool level)
+{
+  STATUS s;
+  s = STATUS_ERROR;
+  esp_err_t err;
+  err = gpio_set_level(gpio_id, level);
+  if (err == ESP_OK)
+    s = STATUS_OK;
+  return s;
+}
+
+
 STATUS io_configure_inputs(gpio_int_type_t int_type, uint64_t gpio_mask)
 {
   esp_err_t err;

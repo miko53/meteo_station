@@ -60,6 +60,7 @@ typedef struct
 } ser_lcd_display_state;
 
 static ser_lcd_display_state ser_lcd_state;
+static bool ser_lcd_power_state;
 
 static STATUS ser_lcd_transmit_command(uint8_t command, uint8_t data);
 
@@ -69,6 +70,7 @@ STATUS ser_lcd_init(void)
   STATUS status;
 
   status = io_configure_output(SER_LCD_GPIO_POWER, true);
+  ser_lcd_power_state = true;
   thread_msleep(2000);
 
   ser_lcd_state.displayControl = SER_LCD_DISPLAY_ON | SER_LCD_CURSOR_OFF | SER_LCD_BLINK_OFF;
@@ -85,6 +87,24 @@ STATUS ser_lcd_init(void)
   //status = STATUS_ERROR;
 
   return status;
+}
+
+void ser_lcd_power_on(void)
+{
+  ser_lcd_power_state = true;
+  io_set_level(SER_LCD_GPIO_POWER, true);
+  thread_msleep(2000);
+}
+
+void ser_lcd_power_off(void)
+{
+  ser_lcd_power_state = false;
+  io_set_level(SER_LCD_GPIO_POWER, false);
+}
+
+bool ser_lcd_get_power_state(void)
+{
+  return ser_lcd_power_state;
 }
 
 STATUS ser_lcd_set_backlight(uint8_t r, uint8_t g, uint8_t b)

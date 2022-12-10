@@ -30,6 +30,10 @@ extern STATUS ser_lcd_autoscroll_on(void);
 extern STATUS ser_lcd_autoscroll_off(void);
 extern STATUS ser_lcd_set_contrast(uint8_t constrast);
 
+extern void ser_lcd_power_on(void);
+extern void ser_lcd_power_off(void);
+extern bool ser_lcd_get_power_state(void);
+
 #ifdef __cplusplus
 }
 #endif
