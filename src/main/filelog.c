@@ -1,4 +1,3 @@
-
 #include "filelog.h"
 #include "log.h"
 #include "drivers/pcf_8523.h"
@@ -10,6 +9,7 @@
 #include "os.h"
 #include "config.h"
 #include <assert.h>
+#include "nvstorage.h"
 
 #define FILELOG_DEFAULT_PERMISSION      (0775)
 #define FILELOG_SIZE_MAX                (256)
@@ -48,6 +48,8 @@ STATUS filelog_init(void)
   {
     s = filelog_pre_allocate_msg(&filelog_msgAllocatedHandle);
   }
+
+  filelog_activate = nvstorage_get_sdcard_log_state();
 
   if (s == STATUS_OK)
   {
@@ -312,6 +314,7 @@ static STATUS filelog_create_folder(char* path)
 void filelog_set_config(bool fileLogConfig)
 {
   filelog_activate = fileLogConfig;
+  nvstorage_set_sdcard_log_state(filelog_activate);
 }
 
 bool filelog_get_config(void)

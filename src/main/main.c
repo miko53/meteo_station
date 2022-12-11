@@ -19,6 +19,7 @@
 #include "anemometer.h"
 #include "winddir.h"
 #include "ctrl.h"
+#include "nvstorage.h"
 
 void panic(void);
 
@@ -59,6 +60,13 @@ void driver_init(void)
 void middleware_init(void)
 {
   STATUS s;
+
+  s = nvstorage_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("nvstorage failed!");
+    panic();
+  }
 
   s = button_init();
   if (s != STATUS_OK)

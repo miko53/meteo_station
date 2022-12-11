@@ -45,7 +45,7 @@ SET(APP_SOURCE main.c
                data_ope.c
                histogram.c
                data_ope_config.c
-               
+               nvstorage.c
 #               main_test.c
                )
                
