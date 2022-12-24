@@ -20,6 +20,7 @@
 #include "winddir.h"
 #include "ctrl.h"
 #include "nvstorage.h"
+#include "ble.h"
 
 void panic(void);
 
@@ -137,7 +138,15 @@ void app_init(void)
     log_error_print("winddir_init failed!");
     panic();
   }
+
+  s = ble_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("ble failed!");
+    panic();
+  }
 }
+
 
 void app_main(void)
 {
@@ -152,6 +161,9 @@ void app_main(void)
   date_set_localtime(&dateTime);
 
   app_init();
+
+
+
   log_info_print("end of initialisation: everything is ok...");
 }
 

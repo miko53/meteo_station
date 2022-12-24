@@ -2,6 +2,7 @@
 #define __CONFIG_H__
 
 #define SD_CARD_MOUNT_POINT        "/sdcard"
+#define METEO_STATION_VERSION      "v0.0.0"
 
 #define CTRL_THREAD_PRIORITY       (configMAX_PRIORITIES - 10)
 #define BUTTON_THREAD_PRIORTY      (configMAX_PRIORITIES - 10)

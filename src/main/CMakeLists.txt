@@ -46,6 +46,8 @@ SET(APP_SOURCE main.c
                histogram.c
                data_ope_config.c
                nvstorage.c
+               ble/ble.c
+               ble/ble_gatt_svr.c
 #               main_test.c
                )
                

@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "config.h"
 #include "drivers/ser_lcd.h"
 #include "menu_date_time.h"
 #include "menu_config.h"
@@ -16,7 +17,7 @@ static void menu_enter_sdcard_screen(screen_t* pScreen);
 screen_t splash_screen =
 {
   .line_1 = "METEO STATION   ",
-  .line_2 = "          v0.0.0",
+  .line_2 = "          " METEO_STATION_VERSION,
   .display = screen_generic_display,
   .on_plus = menu_histo_display_screen,
   .on_minus = menu_display_config_screen,
