@@ -35,6 +35,12 @@ static data_operation_t data_ope_config_list[] =
   },
 };
 
+data_type_t date_ope_config_get_data_type(uint32_t indexSensor)
+{
+  return data_ope_config_list[indexSensor].sensor;
+}
+
+
 data_operation_t* date_ope_config_get(void)
 {
   return data_ope_config_list;

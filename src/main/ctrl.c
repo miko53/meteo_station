@@ -6,6 +6,7 @@
 #include "data_ope.h"
 #include "data_ope_config.h"
 #include "libs.h"
+#include "ble.h"
 
 #define CTRL_NB_MSG       (20)
 
@@ -122,7 +123,7 @@ void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, uint32
 
 void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
 {
-  log_info_print("insert calculated data");
+  log_info_print("insert calculated data (%d)", indexSensor);
   STATUS s;
   filelog_msg* pMsg;
   pMsg = filelog_allocate_msg();
@@ -137,6 +138,8 @@ void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
   {
     log_info_print("error trying to allocate msg\n");
   }
+
+  ble_notify_new_data(date_ope_config_get_data_type(indexSensor), pData);
 }
 
 static void ctrl_log_data(data_msg_t* pDataMsg)

@@ -12,7 +12,7 @@
 #include "console/console.h"
 #include "services/gap/ble_svc_gap.h"
 #include "ble_gatt_svr.h"
-
+#include "data_defs.h"
 
 static const char* ble_device_name = "meteo_station_" METEO_STATION_VERSION;
 static uint8_t ble_address_type;
@@ -219,6 +219,8 @@ static void ble_prepare_and_start_advertise(void)
   }
 }
 
+static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe);
+
 static int ble_gap_event(struct ble_gap_event* event, void* arg)
 {
   switch (event->type)
@@ -238,7 +240,6 @@ static int ble_gap_event(struct ble_gap_event* event, void* arg)
 
     case BLE_GAP_EVENT_DISCONNECT:
       log_info_print("disconnect; reason=%d", event->disconnect.reason);
-
       // Connection terminated; resume advertising
       ble_prepare_and_start_advertise();
       break;
@@ -251,17 +252,7 @@ static int ble_gap_event(struct ble_gap_event* event, void* arg)
     case BLE_GAP_EVENT_SUBSCRIBE:
       log_info_print("subscribe event; cur_notify=%d\n value handle; val_handle=%d",
                      event->subscribe.cur_notify, hrs_hrm_handle);
-
-      if (event->subscribe.attr_handle == hrs_hrm_handle)
-      {
-        notify_state = event->subscribe.cur_notify;
-        blehr_tx_hrate_reset();
-      }
-      else if (event->subscribe.attr_handle != hrs_hrm_handle)
-      {
-        notify_state = event->subscribe.cur_notify;
-        blehr_tx_hrate_stop();
-      }
+      ble_on_subcription(event->subscribe.attr_handle, event->subscribe.cur_notify);
       log_info_print("BLE_GAP_SUBSCRIBE_EVENT", "conn_handle from subscribe=%d", conn_handle);
       break;
 
@@ -277,4 +268,140 @@ static int ble_gap_event(struct ble_gap_event* event, void* arg)
   }
 
   return 0;
+}
+
+bool ble_connected[NB_DATA_TYPE];
+
+static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
+{
+  if (attr_handle == handle_true_wind_speed)
+  {
+    ble_connected[WIND_SPEED] = bSubcribe;
+  }
+  else if (attr_handle == handle_true_wind_dir)
+  {
+    ble_connected[WIND_DIR] = bSubcribe;
+  }
+  else if (attr_handle == handle_rainfall)
+  {
+    ble_connected[RAIN] = bSubcribe;
+  }
+  else if (attr_handle == handle_temperature)
+  {
+    ble_connected[TEMPERATURE] = bSubcribe;
+  }
+  else if (attr_handle == handle_humidity)
+  {
+    ble_connected[HUMIDITY] = bSubcribe;
+  }
+  else if (attr_handle == handle_pressure)
+  {
+    ble_connected[PRESSURE] = bSubcribe;
+  }
+  else
+  {
+    log_info_print("unknown handle 0x%x", attr_handle);
+  }
+}
+
+void convert_and_send_temperature(variant_t* pData);
+void convert_and_send_humidity(variant_t* pData);
+void convert_and_send_pressure(variant_t* pData);
+void convert_and_send_rainfall(variant_t* pData);
+void convert_and_send_winddir(variant_t* pData);
+void convert_and_send_windspeed(variant_t* pData);
+
+void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size);
+
+STATUS ble_notify_new_data(data_type_t indexSensor, variant_t* pData)
+{
+  STATUS s;
+
+  s = STATUS_OK;
+  if (ble_connected[indexSensor] == true)
+  {
+    log_info_print("send Data (%f)", pData->f32);
+    switch (indexSensor)
+    {
+      case TEMPERATURE:
+        convert_and_send_temperature(pData);
+        break;
+
+      case HUMIDITY:
+        convert_and_send_humidity(pData);
+        break;
+
+      case PRESSURE:
+        convert_and_send_pressure(pData);
+        break;
+
+      case RAIN:
+        convert_and_send_rainfall(pData);
+        break;
+
+      case WIND_DIR:
+        convert_and_send_winddir(pData);
+        break;
+
+      case WIND_SPEED:
+        convert_and_send_windspeed(pData);
+        break;
+
+      default:
+        break;
+    }
+  }
+
+
+  return s;
+}
+
+void convert_and_send_temperature(variant_t* pData)
+{
+  uint16_t d;
+  d = pData->f32 * 10;
+  ble_send_buffer_data(handle_temperature, &d, sizeof(uint16_t));
+}
+
+void convert_and_send_humidity(variant_t* pData)
+{
+  uint16_t d;
+  d = pData->f32 * 10;
+  ble_send_buffer_data(handle_humidity, &d, sizeof(uint16_t));
+}
+
+void convert_and_send_pressure(variant_t* pData)
+{
+  uint32_t d;
+  d = pData->f32 * 10;
+  ble_send_buffer_data(handle_pressure, &d, sizeof(uint32_t));
+}
+
+void convert_and_send_rainfall(variant_t* pData)
+{
+  uint32_t d;
+  d = pData->f32;
+  ble_send_buffer_data(handle_rainfall, &d, sizeof(uint32_t));
+}
+
+void convert_and_send_winddir(variant_t* pData)
+{
+  uint32_t d;
+  d = pData->i32 * 100;
+  ble_send_buffer_data(handle_true_wind_dir, &d, sizeof(uint32_t));
+}
+
+void convert_and_send_windspeed(variant_t* pData)
+{
+  uint32_t d;
+  d = pData->f32 * 100;
+  ble_send_buffer_data(handle_true_wind_speed, &d, sizeof(uint32_t));
+}
+
+void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size)
+{
+  struct os_mbuf* om;
+  int rc;
+  om = ble_hs_mbuf_from_flat(value, size);
+  rc = ble_gattc_notify_custom(conn_handle, handle, om);
 }

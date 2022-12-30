@@ -12,6 +12,8 @@ extern "C" {
 
 extern data_operation_t* date_ope_config_get(void);
 extern uint32_t date_ope_config_nbItems(void);
+extern data_type_t date_ope_config_get_data_type(uint32_t indexSensor);
+
 
 #ifdef __cplusplus
 }

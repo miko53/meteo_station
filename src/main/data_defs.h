@@ -9,7 +9,9 @@ typedef enum
   HUMIDITY,
   RAIN,
   WIND_SPEED,
-  WIND_DIR
+  WIND_DIR,
+  PRESSURE,
+  NB_DATA_TYPE
 } data_type_t;
 
 typedef struct
