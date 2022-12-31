@@ -10,6 +10,8 @@
 #include "bt_uuid.h"
 #include "config.h"
 #include "data_ope.h"
+#include "libs.h"
+#include "drivers/pcf_8523.h"
 
 static const char* manufacture_name = "miko53 ESP32 meteo station";
 static const char* model_number_string = "p1";
@@ -25,10 +27,7 @@ uint16_t handle_rainfall;
 uint16_t handle_temperature;
 uint16_t handle_humidity;
 uint16_t handle_pressure;
-
-static int gatt_svr_chr_access_heart_rate(uint16_t conn_handle, uint16_t attr_handle,
-    struct ble_gatt_access_ctxt* ctxt, void* arg);
-
+uint16_t handle_current_time;
 
 static int gatt_svr_chr_access_device_info(uint16_t conn_handle, uint16_t attr_handle,
     struct ble_gatt_access_ctxt* ctxt, void* arg);
@@ -46,6 +45,9 @@ static int gatt_srv_get_humidity(uint16_t conn_handle, uint16_t attr_handle, str
 static int gatt_srv_get_pressure(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt,
                                  void* arg);
 
+static int gatt_srv_current_time(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt,
+                                 void* arg);
+
 static int ble_gatt_build_es_descriptor_wind_speed(uint16_t conn_handle, uint16_t attr_handle,
     struct ble_gatt_access_ctxt* ctxt, void* arg);
 static int ble_gatt_build_es_descriptor_wind_dir(uint16_t conn_handle, uint16_t attr_handle,
@@ -59,34 +61,9 @@ static int ble_gatt_build_es_descriptor_humidity(uint16_t conn_handle, uint16_t 
 static int ble_gatt_build_es_descriptor_pressure(uint16_t conn_handle, uint16_t attr_handle,
     struct ble_gatt_access_ctxt* ctxt, void* arg);
 
+
 static const struct ble_gatt_svc_def ble_gatt_services[] =
 {
-#if 0
-  {
-    /* Service: Heart-rate */
-    .type = BLE_GATT_SVC_TYPE_PRIMARY,
-    .uuid = BLE_UUID16_DECLARE(GATT_HRS_UUID),
-    .characteristics = (struct ble_gatt_chr_def[])
-    {
-      {
-        /* Characteristic: Heart-rate measurement */
-        .uuid = BLE_UUID16_DECLARE(GATT_HRS_MEASUREMENT_UUID),
-        .access_cb = gatt_svr_chr_access_heart_rate,
-        .val_handle = &hrs_hrm_handle,
-        .flags = BLE_GATT_CHR_F_NOTIFY,
-      },
-      {
-        /* Characteristic: Body sensor location */
-        .uuid = BLE_UUID16_DECLARE(GATT_HRS_BODY_SENSOR_LOC_UUID),
-        .access_cb = gatt_svr_chr_access_heart_rate,
-        .flags = BLE_GATT_CHR_F_READ,
-      },
-      {
-        0, /* No more characteristics in this service */
-      },
-    }
-  },
-#endif
   {
     /* Service: Device Information */
     .type = BLE_GATT_SVC_TYPE_PRIMARY,
@@ -245,31 +222,27 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
       },
     }
   },
+  //Time profile
+  {
+    .type = BLE_GATT_SVC_TYPE_PRIMARY,
+    .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_CURRENT_TIME_SERVICE),
+    .characteristics = (struct ble_gatt_chr_def[])
+    {
+      {
+        .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_CURRENT_TIME),
+        .access_cb = gatt_srv_current_time,
+        .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
+        .val_handle = &handle_current_time,
+      },
+      {
+        0, /* No more characteristics in this service */
+      },
+    }
+  },
   {
     0, /* No more services */
   },
 };
-
-static int gatt_svr_chr_access_heart_rate(uint16_t conn_handle, uint16_t attr_handle,
-    struct ble_gatt_access_ctxt* ctxt, void* arg)
-{
-  /* Sensor location, set to "Chest" */
-  static uint8_t body_sens_loc = 0x01;
-  uint16_t uuid;
-  int rc;
-
-  uuid = ble_uuid_u16(ctxt->chr->uuid);
-
-  if (uuid == GATT_HRS_BODY_SENSOR_LOC_UUID)
-  {
-    rc = os_mbuf_append(ctxt->om, &body_sens_loc, sizeof(body_sens_loc));
-
-    return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
-  }
-
-  assert(0);
-  return BLE_ATT_ERR_UNLIKELY;
-}
 
 #define ES_MEASUREMENT_DESC_LEN     (11)
 
@@ -335,8 +308,9 @@ typedef struct
 
 static void build_frame(uint8_t frame[ES_MEASUREMENT_DESC_LEN], gatt_es_measurement_desc* esDesc)
 {
-  memset(frame, 0, ES_MEASUREMENT_DESC_LEN);
-  frame[2] =  esDesc->sampling_fun;
+  frame[0] = 0;
+  frame[1] = 0;
+  frame[2] = esDesc->sampling_fun;
   frame[3] = (esDesc->measurement_period & 0xFF);
   frame[4] = (esDesc->measurement_period & 0xFF00) >> 8;
   frame[5] = (esDesc->measurement_period & 0xFF0000) >> 16;
@@ -371,6 +345,8 @@ static es_sampling_fun_t gatt_desc_get_sampling_func(data_calcul dataCalOpe)
   }
   return r;
 }
+
+#define BLE_GATT_SET_RC(rc)     ((rc == 0) ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES)
 
 static void gatt_build_desc(uint32_t indexSensor, uint8_t frame[ES_MEASUREMENT_DESC_LEN])
 {
@@ -533,7 +509,7 @@ static int gatt_srv_get_rainfall(uint16_t conn_handle, uint16_t attr_handle, str
     rc = os_mbuf_append(ctxt->om, &d, sizeof(uint32_t));
   }
 
-  return rc;
+  return BLE_GATT_SET_RC(rc);
 }
 
 
@@ -555,7 +531,7 @@ static int gatt_srv_get_wind_speed(uint16_t conn_handle, uint16_t attr_handle, s
     rc = os_mbuf_append(ctxt->om, &d, sizeof(uint32_t));
   }
 
-  return rc;
+  return BLE_GATT_SET_RC(rc);
 }
 
 
@@ -577,7 +553,7 @@ static int gatt_srv_get_wind_dir(uint16_t conn_handle, uint16_t attr_handle, str
     rc = os_mbuf_append(ctxt->om, &d, sizeof(uint32_t));
   }
 
-  return rc;
+  return BLE_GATT_SET_RC(rc);
 }
 
 static int gatt_srv_get_temperature(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt,
@@ -604,3 +580,79 @@ static int gatt_srv_get_pressure(uint16_t conn_handle, uint16_t attr_handle, str
   return rc;
 }
 
+
+static int gatt_svr_chr_write(struct os_mbuf* om, uint16_t min_len, uint16_t max_len, void* dst, uint16_t* len)
+{
+  uint16_t om_len;
+  int rc;
+
+  om_len = OS_MBUF_PKTLEN(om);
+  if (om_len < min_len || om_len > max_len)
+  {
+    return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
+  }
+
+  rc = ble_hs_mbuf_to_flat(om, dst, max_len, len);
+  if (rc != 0)
+  {
+    return BLE_ATT_ERR_UNLIKELY;
+  }
+
+  return 0;
+}
+
+
+int gatt_srv_current_time ( uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt, void* arg )
+{
+  uint8_t frame[10];
+  int rc;
+  rc = -1;
+  if (ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR)
+  {
+    struct tm localTime;
+    date_get_localtime(&localTime);
+
+    localTime.tm_year += 1900;
+    localTime.tm_mon += 1;
+
+    frame[0] = localTime.tm_year & 0xFF;
+    frame[1] = (localTime.tm_year & 0xFF00) >> 8;
+    frame[2] = (localTime.tm_mon);
+    frame[3] = (localTime.tm_mday);
+    frame[4] = (localTime.tm_hour);
+    frame[5] = (localTime.tm_min);
+    frame[6] = (localTime.tm_sec);
+    frame[7] = 0;
+    frame[8] = 0;
+    frame[9] = 0;
+
+    rc = os_mbuf_append(ctxt->om, frame, sizeof(frame));
+  }
+  else if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR)
+  {
+    uint16_t len = 0;
+    rc = gatt_svr_chr_write(ctxt->om, 10, 10, frame, &len);
+    if (rc == 0)
+    {
+      struct tm localTime;
+      memset(&localTime, 0, sizeof(struct tm));
+      localTime.tm_year = (frame[1] << 8) | frame[0];
+      localTime.tm_mon = frame[2];
+      localTime.tm_mday = frame[3];
+      localTime.tm_hour = frame[4];
+      localTime.tm_min = frame[5];
+      localTime.tm_sec = frame[6];
+
+      localTime.tm_mon -=  1;
+      localTime.tm_year -= 1900;
+      pcf8523_set_date(&localTime);
+      date_set_localtime(&localTime);
+    }
+    else
+    {
+      return rc;
+    }
+  }
+
+  return BLE_GATT_SET_RC(rc);
+}

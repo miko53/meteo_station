@@ -2,27 +2,21 @@
 #define __BLE_GATT_SVR_H__
 
 #include "nimble/ble.h"
-#include "modlog/modlog.h"
 #include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Heart-rate configuration */
-#define GATT_HRS_MEASUREMENT_UUID               0x2A37
-#define GATT_HRS_BODY_SENSOR_LOC_UUID           0x2A38
-#define GATT_HRS_UUID                           0x180D
-
 extern uint16_t hrs_hrm_handle;
-extern STATUS ble_gatt_srv_initialize(void);
-extern  uint16_t handle_true_wind_speed;
+extern uint16_t handle_true_wind_speed;
 extern uint16_t handle_true_wind_dir;
 extern uint16_t handle_rainfall;
 extern uint16_t handle_temperature;
 extern uint16_t handle_humidity;
 extern uint16_t handle_pressure;
 
+extern STATUS ble_gatt_srv_initialize(void);
 
 #ifdef __cplusplus
 }

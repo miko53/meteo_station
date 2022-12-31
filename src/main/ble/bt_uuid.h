@@ -3,6 +3,14 @@
 
 #include "common.h"
 
+
+#define BT_UUID_GATT_CURRENT_TIME_SERVICE        (0x1805)
+
+#define BT_UUID_GATT_CURRENT_TIME                       (0x2A2B)
+#define BT_UUID_GATT_LOCAL_TIME_INFORMATION             (0x2A0F)
+#define BT_UUID_GATT_REFERENCE_TIME_INFORMATION         (0x2A14)
+
+
 #define BT_UUID_GATT_DEVICE_INFO_SERVICE         (0x180A)
 #define BT_UUID_GATT_MODEL_NUMBER_UUID                  (0x2A24)
 #define BT_UUID_GATT_SERIAL_NUMBER_STRING               (0x2A25)

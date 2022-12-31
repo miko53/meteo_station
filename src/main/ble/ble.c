@@ -16,14 +16,7 @@
 
 static const char* ble_device_name = "meteo_station_" METEO_STATION_VERSION;
 static uint8_t ble_address_type;
-
-/* Variable to simulate heart beats */
-static uint8_t heartrate = 90;
-
-static TimerHandle_t blehr_tx_timer;
-static bool notify_state;
 static uint16_t conn_handle;
-
 
 static void ble_on_synchronization(void);
 static void ble_on_reset(int reason);
@@ -31,60 +24,6 @@ static void ble_nimble_srv_task(void* param);
 static void ble_prepare_and_start_advertise(void);
 
 static int ble_gap_event(struct ble_gap_event* event, void* arg);
-
-static void blehr_tx_hrate_stop(void)
-{
-  xTimerStop( blehr_tx_timer, 1000 / portTICK_PERIOD_MS );
-}
-
-/* Reset heart rate measurement */
-static void blehr_tx_hrate_reset(void)
-{
-  int rc;
-
-  if (xTimerReset(blehr_tx_timer, 1000 / portTICK_PERIOD_MS ) == pdPASS)
-  {
-    rc = 0;
-  }
-  else
-  {
-    rc = 1;
-  }
-
-  assert(rc == 0);
-}
-
-/* This function simulates heart beat and notifies it to the client */
-static void blehr_tx_hrate(TimerHandle_t ev)
-{
-  static uint8_t hrm[2];
-  int rc;
-  struct os_mbuf* om;
-
-  if (!notify_state)
-  {
-    blehr_tx_hrate_stop();
-    heartrate = 90;
-    return;
-  }
-
-  hrm[0] = 0x06; /* contact of a sensor */
-  hrm[1] = heartrate; /* storing dummy data */
-
-  /* Simulation of heart beats */
-  heartrate++;
-  if (heartrate == 160)
-  {
-    heartrate = 90;
-  }
-
-  om = ble_hs_mbuf_from_flat(hrm, sizeof(hrm));
-  rc = ble_gattc_notify_custom(conn_handle, hrs_hrm_handle, om);
-
-  assert(rc == 0);
-
-  blehr_tx_hrate_reset();
-}
 
 
 
@@ -107,9 +46,6 @@ STATUS ble_init(void)
     // initialize the NimBLE host configuration
     ble_hs_cfg.sync_cb = ble_on_synchronization;
     ble_hs_cfg.reset_cb = ble_on_reset;
-
-    /* name, period/time,  auto reload, timer ID, callback */
-    blehr_tx_timer = xTimerCreate("blehr_tx_timer", pdMS_TO_TICKS(1000), pdTRUE, (void*)0, blehr_tx_hrate); //TODO remove it
     s = ble_gatt_srv_initialize();
   }
 
@@ -270,7 +206,7 @@ static int ble_gap_event(struct ble_gap_event* event, void* arg)
   return 0;
 }
 
-bool ble_connected[NB_DATA_TYPE];
+static bool ble_connected[NB_DATA_TYPE];
 
 static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
 {
@@ -304,14 +240,13 @@ static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
   }
 }
 
-void convert_and_send_temperature(variant_t* pData);
-void convert_and_send_humidity(variant_t* pData);
-void convert_and_send_pressure(variant_t* pData);
-void convert_and_send_rainfall(variant_t* pData);
-void convert_and_send_winddir(variant_t* pData);
-void convert_and_send_windspeed(variant_t* pData);
-
-void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size);
+static void convert_and_send_temperature(variant_t* pData);
+static void convert_and_send_humidity(variant_t* pData);
+static void convert_and_send_pressure(variant_t* pData);
+static void convert_and_send_rainfall(variant_t* pData);
+static void convert_and_send_winddir(variant_t* pData);
+static void convert_and_send_windspeed(variant_t* pData);
+static void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size);
 
 STATUS ble_notify_new_data(data_type_t indexSensor, variant_t* pData)
 {
