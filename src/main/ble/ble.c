@@ -2,9 +2,7 @@
 #include "log.h"
 #include "esp_nimble_hci.h"
 #include "config.h"
-
 #include "freertos/FreeRTOSConfig.h"
-
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
@@ -22,7 +20,14 @@ static void ble_on_synchronization(void);
 static void ble_on_reset(int reason);
 static void ble_nimble_srv_task(void* param);
 static void ble_prepare_and_start_advertise(void);
-
+static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe);
+static void convert_and_send_temperature(variant_t* pData);
+static void convert_and_send_humidity(variant_t* pData);
+static void convert_and_send_pressure(variant_t* pData);
+static void convert_and_send_rainfall(variant_t* pData);
+static void convert_and_send_winddir(variant_t* pData);
+static void convert_and_send_windspeed(variant_t* pData);
+static void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size);
 static int ble_gap_event(struct ble_gap_event* event, void* arg);
 
 STATUS ble_init(void)
@@ -134,8 +139,7 @@ static void ble_prepare_and_start_advertise(void)
    *      o Discoverability in forthcoming advertisement (general)
    *      o BLE-only (BR/EDR unsupported)
    */
-  fields.flags = BLE_HS_ADV_F_DISC_GEN |
-                 BLE_HS_ADV_F_BREDR_UNSUP;
+  fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
 
   /*
    * Indicate that the TX power level field should be included; have the
@@ -168,8 +172,6 @@ static void ble_prepare_and_start_advertise(void)
     return;
   }
 }
-
-static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe);
 
 static int ble_gap_event(struct ble_gap_event* event, void* arg)
 {
@@ -259,14 +261,6 @@ static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
   }
 }
 
-static void convert_and_send_temperature(variant_t* pData);
-static void convert_and_send_humidity(variant_t* pData);
-static void convert_and_send_pressure(variant_t* pData);
-static void convert_and_send_rainfall(variant_t* pData);
-static void convert_and_send_winddir(variant_t* pData);
-static void convert_and_send_windspeed(variant_t* pData);
-static void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size);
-
 STATUS ble_notify_new_data(data_type_t indexSensor, variant_t* pData)
 {
   STATUS s;
@@ -353,7 +347,8 @@ void convert_and_send_windspeed(variant_t* pData)
 void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size)
 {
   struct os_mbuf* om;
-  int rc;
+  //int rc;
   om = ble_hs_mbuf_from_flat(value, size);
-  rc = ble_gattc_notify_custom(conn_handle, handle, om);
+  /*rc =*/
+  ble_gattc_notify_custom(conn_handle, handle, om);
 }

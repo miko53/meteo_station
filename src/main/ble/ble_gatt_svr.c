@@ -7,11 +7,15 @@
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 #include "ble_gatt_svr.h"
+#include "ble_env_srv.h"
+#include "ble_date_srv.h"
 #include "bt_uuid.h"
 #include "config.h"
 #include "data_ope.h"
 #include "libs.h"
 #include "drivers/pcf_8523.h"
+
+#define BLE_GATT_SET_RC(rc)     ((rc == 0) ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES)
 
 static const char* manufacture_name = "miko53 ESP32 meteo station";
 static const char* model_number_string = "p1";
@@ -44,10 +48,8 @@ static int gatt_srv_get_humidity(uint16_t conn_handle, uint16_t attr_handle, str
                                  void* arg);
 static int gatt_srv_get_pressure(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt,
                                  void* arg);
-
 static int gatt_srv_current_time(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt,
                                  void* arg);
-
 static int ble_gatt_build_es_descriptor_wind_speed(uint16_t conn_handle, uint16_t attr_handle,
     struct ble_gatt_access_ctxt* ctxt, void* arg);
 static int ble_gatt_build_es_descriptor_wind_dir(uint16_t conn_handle, uint16_t attr_handle,
@@ -244,109 +246,33 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
   },
 };
 
-#define ES_MEASUREMENT_DESC_LEN     (11)
 
-typedef enum
+STATUS ble_gatt_srv_initialize(void)
 {
-  SAMPLING_FUN_UNSPECIFIED = 0x00,
-  SAMPLING_FUN_INSTANTANEOUS = 0x01,
-  SAMPLING_FUN_ARITHMETIC_MEAN = 0x02,
-  SAMPLING_FUN_RMS = 0x03,
-  SAMPLING_FUN_MAXIMUM = 0x04,
-  SAMPLING_FUN_MINIMUM = 0x05,
-  SAMPLING_FUN_ACCUMULATED = 0x06,
-  SAMPLING_FUN_COUNT = 0x07,
-} es_sampling_fun_t;
+  STATUS s;
+  int rc;
 
-typedef enum
-{
-  ES_APPLICATION_UNSPECIFIED,
-  ES_APPLICATION_AIR,
-  ES_APPLICATION_WATER,
-  ES_APPLICATION_BAROMETRIC,
-  ES_APPLICATION_SOIL,
-  ES_APPLICATION_INFRARED,
-  ES_APPLICATION_MAP_DATABASE,
-  ES_APPLICATION_BAROMETRIC_ELEVATION_SOURCE,
-  ES_APPLICATION_GPS_ONLY_ELEVATION_SOURCE,
-  ES_APPLICATION_GPS_AND_MAP_DATABASE_ELEVATION_SOURCE,
-  ES_APPLICATION_VERTICAL_DATUM_ELEVATION_SOURCE,
-  ES_APPLICATION_ONSHORE,
-  ES_APPLICATION_ONBOARD_VESSEL_OR_VEHICLE,
-  ES_APPLICATION_FRONT,
-  ES_APPLICATION_BAC_REAR,
-  ES_APPLICATION_UPPER,
-  ES_APPLICATION_LOWER,
-  ES_APPLICATION_PRIMARY,
-  ES_APPLICATION_SECONDARY,
-  ES_APPLICATION_OUTDOOR,
-  ES_APPLICATION_INDOOR,
-  ES_APPLICATION_TOP,
-  ES_APPLICATION_BOTTOM,
-  ES_APPLICATION_MAIN,
-  ES_APPLICATION_BACKUP,
-  ES_APPLICATION_AUXILIARY,
-  ES_APPLICATION_SUPPLEMENTARY,
-  ES_APPLICATION_INSIDE,
-  ES_APPLICATION_OUTSIDE,
-  ES_APPLICATION_LEFT,
-  ES_APPLICATION_RIGHT,
-  ES_APPLICATION_INTERNAL,
-  ES_APPLICATION_EXTERNAL,
-  ES_APPLICATION_SOLAR,
-} es_application_t;
+  s = STATUS_OK;
+  ble_svc_gap_init();
+  ble_svc_gatt_init();
 
-typedef struct
-{
-  //uint16_t flags; //< reserved for future use
-  es_sampling_fun_t sampling_fun;
-  uint32_t measurement_period;
-  uint32_t update_interval;
-  es_application_t application;
-  uint8_t measurement_incertainty;
-} gatt_es_measurement_desc;
-
-static void build_frame(uint8_t frame[ES_MEASUREMENT_DESC_LEN], gatt_es_measurement_desc* esDesc)
-{
-  frame[0] = 0;
-  frame[1] = 0;
-  frame[2] = esDesc->sampling_fun;
-  frame[3] = (esDesc->measurement_period & 0xFF);
-  frame[4] = (esDesc->measurement_period & 0xFF00) >> 8;
-  frame[5] = (esDesc->measurement_period & 0xFF0000) >> 16;
-  frame[6] = (esDesc->update_interval & 0xFF);
-  frame[7] = (esDesc->update_interval & 0xFF00) >> 8;
-  frame[8] = (esDesc->update_interval & 0xFF0000) >> 16;
-  frame[9] = (esDesc->application);
-  frame[10] = (esDesc->measurement_incertainty);
-}
-
-static es_sampling_fun_t gatt_desc_get_sampling_func(data_calcul dataCalOpe)
-{
-  es_sampling_fun_t r;
-
-  switch (dataCalOpe)
+  rc = ble_gatts_count_cfg(ble_gatt_services);
+  if (rc != 0)
   {
-    case OPE_AVERAGE:
-      r = SAMPLING_FUN_ARITHMETIC_MEAN;
-      break;
-    case OPE_CUMUL:
-      r = SAMPLING_FUN_ACCUMULATED;
-      break;
-    case OPE_MAX:
-      r = SAMPLING_FUN_MAXIMUM;
-      break;
-    case OPE_MIN:
-      r = SAMPLING_FUN_MINIMUM;
-      break;
-    default:
-      r = -1;
-      break;
+    s = STATUS_ERROR;
   }
-  return r;
-}
 
-#define BLE_GATT_SET_RC(rc)     ((rc == 0) ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES)
+  if (s == STATUS_OK)
+  {
+    rc = ble_gatts_add_svcs(ble_gatt_services);
+    if (rc != 0)
+    {
+      s = STATUS_ERROR;
+    }
+  }
+
+  return s;
+}
 
 static void gatt_build_desc(uint32_t indexSensor, uint8_t frame[ES_MEASUREMENT_DESC_LEN])
 {
@@ -411,34 +337,6 @@ static int ble_gatt_build_es_descriptor_pressure(uint16_t conn_handle, uint16_t 
 }
 
 
-STATUS ble_gatt_srv_initialize(void)
-{
-  STATUS s;
-  int rc;
-
-  s = STATUS_OK;
-  ble_svc_gap_init();
-  ble_svc_gatt_init();
-
-  rc = ble_gatts_count_cfg(ble_gatt_services);
-  if (rc != 0)
-  {
-    s = STATUS_ERROR;
-  }
-
-  if (s == STATUS_OK)
-  {
-    rc = ble_gatts_add_svcs(ble_gatt_services);
-    if (rc != 0)
-    {
-      s = STATUS_ERROR;
-    }
-  }
-
-  return s;
-}
-
-
 static int gatt_svr_chr_access_device_info(uint16_t conn_handle, uint16_t attr_handle,
     struct ble_gatt_access_ctxt* ctxt, void* arg)
 {
@@ -495,13 +393,13 @@ static int gatt_srv_get_rainfall(uint16_t conn_handle, uint16_t attr_handle, str
                                  void* arg)
 {
   histogram_t* currentHisto;
-  currentHisto = data_ope_get_histo(0); //TODO
+  currentHisto = data_ope_get_histo(SENSOR_INDEX_SLIDE_RAIN_FALL);
 
   variant_t v;
   STATUS s;
   int rc;
   rc = BLE_ATT_ERR_UNLIKELY;
-  s = histogram_get(currentHisto, 0, &v);
+  s = histogram_get(currentHisto, LAST_VALUE, &v);
   if (s == STATUS_OK)
   {
     uint32_t d;
@@ -517,13 +415,13 @@ static int gatt_srv_get_wind_speed(uint16_t conn_handle, uint16_t attr_handle, s
                                    void* arg)
 {
   histogram_t* currentHisto;
-  currentHisto = data_ope_get_histo(2); //TODO
+  currentHisto = data_ope_get_histo(SENSOR_INDEX_SLIDE_WIND_SPEED);
 
   variant_t v;
   STATUS s;
   int rc;
   rc = BLE_ATT_ERR_UNLIKELY;
-  s = histogram_get(currentHisto, 0, &v);
+  s = histogram_get(currentHisto, LAST_VALUE, &v);
   if (s == STATUS_OK)
   {
     uint32_t d;
@@ -539,13 +437,13 @@ static int gatt_srv_get_wind_dir(uint16_t conn_handle, uint16_t attr_handle, str
                                  void* arg)
 {
   histogram_t* currentHisto;
-  currentHisto = data_ope_get_histo(4); //TODO
+  currentHisto = data_ope_get_histo(SENSOR_INDEX_SLIDE_WIND_DIR);
 
   variant_t v;
   STATUS s;
   int rc;
   rc = BLE_ATT_ERR_UNLIKELY;
-  s = histogram_get(currentHisto, 0, &v);
+  s = histogram_get(currentHisto, LAST_VALUE, &v);
   if (s == STATUS_OK)
   {
     uint32_t d;
@@ -580,7 +478,6 @@ static int gatt_srv_get_pressure(uint16_t conn_handle, uint16_t attr_handle, str
   return rc;
 }
 
-
 static int gatt_svr_chr_write(struct os_mbuf* om, uint16_t min_len, uint16_t max_len, void* dst, uint16_t* len)
 {
   uint16_t om_len;
@@ -601,31 +498,14 @@ static int gatt_svr_chr_write(struct os_mbuf* om, uint16_t min_len, uint16_t max
   return 0;
 }
 
-
 int gatt_srv_current_time ( uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt* ctxt, void* arg )
 {
-  uint8_t frame[10];
+  uint8_t frame[BLE_DATE_FRAME_SIZE];
   int rc;
   rc = -1;
   if (ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR)
   {
-    struct tm localTime;
-    date_get_localtime(&localTime);
-
-    localTime.tm_year += 1900;
-    localTime.tm_mon += 1;
-
-    frame[0] = localTime.tm_year & 0xFF;
-    frame[1] = (localTime.tm_year & 0xFF00) >> 8;
-    frame[2] = (localTime.tm_mon);
-    frame[3] = (localTime.tm_mday);
-    frame[4] = (localTime.tm_hour);
-    frame[5] = (localTime.tm_min);
-    frame[6] = (localTime.tm_sec);
-    frame[7] = 0;
-    frame[8] = 0;
-    frame[9] = 0;
-
+    ble_date_build_frame(frame);
     rc = os_mbuf_append(ctxt->om, frame, sizeof(frame));
   }
   else if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR)
@@ -635,16 +515,7 @@ int gatt_srv_current_time ( uint16_t conn_handle, uint16_t attr_handle, struct b
     if (rc == 0)
     {
       struct tm localTime;
-      memset(&localTime, 0, sizeof(struct tm));
-      localTime.tm_year = (frame[1] << 8) | frame[0];
-      localTime.tm_mon = frame[2];
-      localTime.tm_mday = frame[3];
-      localTime.tm_hour = frame[4];
-      localTime.tm_min = frame[5];
-      localTime.tm_sec = frame[6];
-
-      localTime.tm_mon -=  1;
-      localTime.tm_year -= 1900;
+      ble_date_decode(&localTime, frame);
       pcf8523_set_date(&localTime);
       date_set_localtime(&localTime);
     }

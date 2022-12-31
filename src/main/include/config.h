@@ -25,6 +25,10 @@
 #define WINDDIR_WAIT_TIME          (10)
 #define RAINMETER_WAIT_TIME        (10) //  (15*60) //15 min
 
+#define SENSOR_INDEX_SLIDE_RAIN_FALL     (0)
+#define SENSOR_INDEX_SLIDE_WIND_SPEED    (2)
+#define SENSOR_INDEX_SLIDE_WIND_DIR      (4)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

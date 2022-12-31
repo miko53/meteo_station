@@ -48,6 +48,8 @@ SET(APP_SOURCE main.c
                nvstorage.c
                ble/ble.c
                ble/ble_gatt_svr.c
+               ble/ble_env_srv.c
+               ble/ble_date_srv.c
 #               main_test.c
                )
                

@@ -1,0 +1,80 @@
+#ifndef __BLE_ENV_SRV_H__
+#define __BLE_ENV_SRV_H__
+
+#include "common.h"
+#include "data_ope.h"
+
+#define ES_MEASUREMENT_DESC_LEN     (11)
+
+typedef enum
+{
+  SAMPLING_FUN_UNSPECIFIED = 0x00,
+  SAMPLING_FUN_INSTANTANEOUS = 0x01,
+  SAMPLING_FUN_ARITHMETIC_MEAN = 0x02,
+  SAMPLING_FUN_RMS = 0x03,
+  SAMPLING_FUN_MAXIMUM = 0x04,
+  SAMPLING_FUN_MINIMUM = 0x05,
+  SAMPLING_FUN_ACCUMULATED = 0x06,
+  SAMPLING_FUN_COUNT = 0x07,
+} es_sampling_fun_t;
+
+typedef enum
+{
+  ES_APPLICATION_UNSPECIFIED,
+  ES_APPLICATION_AIR,
+  ES_APPLICATION_WATER,
+  ES_APPLICATION_BAROMETRIC,
+  ES_APPLICATION_SOIL,
+  ES_APPLICATION_INFRARED,
+  ES_APPLICATION_MAP_DATABASE,
+  ES_APPLICATION_BAROMETRIC_ELEVATION_SOURCE,
+  ES_APPLICATION_GPS_ONLY_ELEVATION_SOURCE,
+  ES_APPLICATION_GPS_AND_MAP_DATABASE_ELEVATION_SOURCE,
+  ES_APPLICATION_VERTICAL_DATUM_ELEVATION_SOURCE,
+  ES_APPLICATION_ONSHORE,
+  ES_APPLICATION_ONBOARD_VESSEL_OR_VEHICLE,
+  ES_APPLICATION_FRONT,
+  ES_APPLICATION_BAC_REAR,
+  ES_APPLICATION_UPPER,
+  ES_APPLICATION_LOWER,
+  ES_APPLICATION_PRIMARY,
+  ES_APPLICATION_SECONDARY,
+  ES_APPLICATION_OUTDOOR,
+  ES_APPLICATION_INDOOR,
+  ES_APPLICATION_TOP,
+  ES_APPLICATION_BOTTOM,
+  ES_APPLICATION_MAIN,
+  ES_APPLICATION_BACKUP,
+  ES_APPLICATION_AUXILIARY,
+  ES_APPLICATION_SUPPLEMENTARY,
+  ES_APPLICATION_INSIDE,
+  ES_APPLICATION_OUTSIDE,
+  ES_APPLICATION_LEFT,
+  ES_APPLICATION_RIGHT,
+  ES_APPLICATION_INTERNAL,
+  ES_APPLICATION_EXTERNAL,
+  ES_APPLICATION_SOLAR,
+} es_application_t;
+
+typedef struct
+{
+  //uint16_t flags; //< reserved for future use
+  es_sampling_fun_t sampling_fun;
+  uint32_t measurement_period;
+  uint32_t update_interval;
+  es_application_t application;
+  uint8_t measurement_incertainty;
+} gatt_es_measurement_desc;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern void build_frame(uint8_t frame[ES_MEASUREMENT_DESC_LEN], gatt_es_measurement_desc* esDesc);
+extern es_sampling_fun_t gatt_desc_get_sampling_func(data_calcul dataCalOpe);
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* __BLE_ENV_SRV_H__ */
