@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 extern STATUS ble_init(void);
+//extern STATUS ble_deinit(void);
 extern STATUS ble_notify_new_data(data_type_t indexSensor, variant_t* pData);
 
 #ifdef __cplusplus

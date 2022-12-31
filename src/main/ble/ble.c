@@ -25,8 +25,6 @@ static void ble_prepare_and_start_advertise(void);
 
 static int ble_gap_event(struct ble_gap_event* event, void* arg);
 
-
-
 STATUS ble_init(void)
 {
   STATUS s;
@@ -66,6 +64,22 @@ STATUS ble_init(void)
 
   return s;
 }
+
+// STATUS ble_deinit(void)
+// {
+//  int ret = nimble_port_stop();
+//  if (ret == 0)
+//  {
+//       nimble_port_deinit();
+//
+//       ret = esp_nimble_hci_and_controller_deinit();
+//       if (ret != ESP_OK)
+//       {
+//           log_error_print("esp_nimble_hci_and_controller_deinit() failed with error: %d", ret);
+//       }
+//  }
+//  return STATUS_OK;
+// }
 
 static void ble_on_synchronization(void)
 {
@@ -207,6 +221,7 @@ static int ble_gap_event(struct ble_gap_event* event, void* arg)
 }
 
 static bool ble_connected[NB_DATA_TYPE];
+static bool ble_time_connected;
 
 static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
 {
@@ -233,6 +248,10 @@ static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
   else if (attr_handle == handle_pressure)
   {
     ble_connected[PRESSURE] = bSubcribe;
+  }
+  else if (attr_handle == handle_current_time)
+  {
+    ble_time_connected = bSubcribe;
   }
   else
   {
@@ -286,8 +305,6 @@ STATUS ble_notify_new_data(data_type_t indexSensor, variant_t* pData)
         break;
     }
   }
-
-
   return s;
 }
 

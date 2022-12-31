@@ -139,11 +139,14 @@ void app_init(void)
     panic();
   }
 
-  s = ble_init();
-  if (s != STATUS_OK)
+  if (nvstorage_get_ble_state() == true)
   {
-    log_error_print("ble failed!");
-    panic();
+    s = ble_init();
+    if (s != STATUS_OK)
+    {
+      log_error_print("ble failed!");
+      panic();
+    }
   }
 }
 

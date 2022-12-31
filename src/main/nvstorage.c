@@ -61,3 +61,31 @@ STATUS nvstorage_set_sdcard_log_state(bool bState)
   return s;
 }
 
+bool nvstorage_get_ble_state(void)
+{
+  esp_err_t err;
+  uint32_t v;
+
+  v = false;
+  err = nvs_get_u32(nvstorage_handle, "[ble]", &v);
+  if (err != ESP_OK)
+  {
+    log_dbg_print("read status = %d\n", err);
+  }
+
+  return (bool) v;
+}
+
+STATUS nvstorage_set_ble_state(bool bState)
+{
+  STATUS s;
+  esp_err_t err;
+  s = STATUS_ERROR;
+
+  err = nvs_set_u32 (nvstorage_handle, "[ble]", bState);
+  if (err == ESP_OK)
+    s = STATUS_OK;
+
+  return s;
+}
+

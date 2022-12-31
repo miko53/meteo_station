@@ -15,6 +15,7 @@ extern uint16_t handle_rainfall;
 extern uint16_t handle_temperature;
 extern uint16_t handle_humidity;
 extern uint16_t handle_pressure;
+extern uint16_t handle_current_time;
 
 extern STATUS ble_gatt_srv_initialize(void);
 

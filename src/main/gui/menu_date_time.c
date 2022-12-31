@@ -88,7 +88,7 @@ screen_t config_date_screen =
   .on_cmd = menu_date_goto_modif_date_screen,
   .on_cmd_long_press = menu_display_config_screen,
   .on_plus = menu_date_display_time_screen,
-  .on_minus = menu_display_config_activate_filelog_screen,
+  .on_minus = menu_display_config_activate_ble_screen,
   .on_enter = NULL,
   .on_exit = NULL,
 };

@@ -9,6 +9,7 @@ extern "C" {
 
 extern void menu_display_config_screen(screen_t* screen);
 extern void menu_display_config_activate_filelog_screen(screen_t* screen);
+extern void menu_display_config_activate_ble_screen(screen_t* screen);
 
 #ifdef __cplusplus
 }
