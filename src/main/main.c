@@ -21,6 +21,7 @@
 #include "ctrl.h"
 #include "nvstorage.h"
 #include "ble.h"
+#include "zigbee.h"
 
 void panic(void);
 
@@ -147,6 +148,13 @@ void app_init(void)
       log_error_print("ble failed!");
       panic();
     }
+  }
+  
+  s = zigbee_init();
+  if (s != STATUS_OK)
+  {
+    log_error_print("zigbee failed!");
+    panic();
   }
 }
 

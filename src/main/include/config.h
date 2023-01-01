@@ -8,17 +8,25 @@
 #define BUTTON_THREAD_PRIORTY      (configMAX_PRIORITIES - 10)
 #define SCREEN_EVENT_THREAD_PRIORITY (configMAX_PRIORITIES - 12)
 #define FILELOG_THREAD_PRIORITY    (configMAX_PRIORITIES - 15)
+#define ZB_THREAD_PRIORITY         (configMAX_PRIORITIES - 11)
 
 #define CTRL_THREAD_STACK_SIZE     (4196)
 #define BUTTON_THREAD_STACK_SIZE   (4196)
 #define FILELOG_THREAD_STACK_SIZE  (4196)
 #define SCREEN_EVENT_THREAD_STACK_SIZE (2148)
+#define ZB_THREAD_STACK_SIZE           (2148)
+
 
 
 //gpio
 #define ANEMOMETER_GPIO_INPUT      (38)
 #define WINDDIR_GPIO_INPUT         (37)
 #define RAINMETER_GPIO_INPUT       (34)
+
+#define XBEE_RESET                 (22)
+#define XBEE_SLEEP_RQ              (23)
+#define XBEE_TX                    (21)
+#define XBEE_RX                    (19)
 
 //in second
 #define ANEMOMETER_WAIT_TIME       (10)

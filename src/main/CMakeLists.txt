@@ -50,6 +50,7 @@ SET(APP_SOURCE main.c
                ble/ble_gatt_svr.c
                ble/ble_env_srv.c
                ble/ble_date_srv.c
+               zigbee.c
 #               main_test.c
                )
                
