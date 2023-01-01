@@ -4,20 +4,24 @@
 #include "nimble/ble.h"
 #include "common.h"
 
+typedef enum
+{
+  NOTIFY_HANDLE_TRUE_WIND_SPEED,
+  NOTIFY_HANDLE_TRUE_WIND_DIR,
+  NOTIFY_HANDLE_RAINFALL,
+  NOTIFY_HANDLE_TEMPERATURE,
+  NOTIFY_HANDLE_HUMIDITY,
+  NOTIFY_HANDLE_PRESSURE,
+  NOTIFY_HANDLE_CURRENT_TIME,
+  NB_BLE_NOTIFY_HANDLE
+} ble_notify_handle_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern uint16_t hrs_hrm_handle;
-extern uint16_t handle_true_wind_speed;
-extern uint16_t handle_true_wind_dir;
-extern uint16_t handle_rainfall;
-extern uint16_t handle_temperature;
-extern uint16_t handle_humidity;
-extern uint16_t handle_pressure;
-extern uint16_t handle_current_time;
-
 extern STATUS ble_gatt_srv_initialize(void);
+extern uint16_t ble_gatt_svr_get_notify_handle(ble_notify_handle_t handle);
 
 #ifdef __cplusplus
 }

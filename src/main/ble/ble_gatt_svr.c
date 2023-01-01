@@ -24,14 +24,7 @@ static const char* firmware_rev_string = "0";
 static const char* hardware_rev_string = "04/09/2022";
 static const char* software_rev_string = METEO_STATION_VERSION;
 
-uint16_t hrs_hrm_handle;
-uint16_t handle_true_wind_speed;
-uint16_t handle_true_wind_dir;
-uint16_t handle_rainfall;
-uint16_t handle_temperature;
-uint16_t handle_humidity;
-uint16_t handle_pressure;
-uint16_t handle_current_time;
+static uint16_t blr_gatt_notify_handle[NB_BLE_NOTIFY_HANDLE];
 
 static int gatt_svr_chr_access_device_info(uint16_t conn_handle, uint16_t attr_handle,
     struct ble_gatt_access_ctxt* ctxt, void* arg);
@@ -117,7 +110,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_TRUE_WIND_SPEED),
         .access_cb = gatt_srv_get_wind_speed,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-        .val_handle = &handle_true_wind_speed,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_TRUE_WIND_SPEED],
         .descriptors = (struct ble_gatt_dsc_def[])
         {
           {
@@ -139,7 +132,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_TRUE_WIND_DIR),
         .access_cb = gatt_srv_get_wind_dir,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-        .val_handle = &handle_true_wind_dir,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_TRUE_WIND_DIR],
         .descriptors = (struct ble_gatt_dsc_def[])
         {
           {
@@ -155,7 +148,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_RAINFALL),
         .access_cb = gatt_srv_get_rainfall,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-        .val_handle = &handle_rainfall,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_RAINFALL],
         .descriptors = (struct ble_gatt_dsc_def[])
         {
           {
@@ -172,7 +165,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_TEMPERATURE),
         .access_cb = gatt_srv_get_temperature,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-        .val_handle = &handle_temperature,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_TEMPERATURE],
         .descriptors = (struct ble_gatt_dsc_def[])
         {
           {
@@ -189,7 +182,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_HUMIDITY),
         .access_cb = gatt_srv_get_humidity,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-        .val_handle = &handle_humidity,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_HUMIDITY],
         .descriptors = (struct ble_gatt_dsc_def[])
         {
           {
@@ -206,7 +199,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_PRESSURE),
         .access_cb = gatt_srv_get_pressure,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-        .val_handle = &handle_pressure,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_PRESSURE],
         .descriptors = (struct ble_gatt_dsc_def[])
         {
           {
@@ -234,7 +227,7 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
         .uuid = BLE_UUID16_DECLARE(BT_UUID_GATT_CURRENT_TIME),
         .access_cb = gatt_srv_current_time,
         .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
-        .val_handle = &handle_current_time,
+        .val_handle = &blr_gatt_notify_handle[NOTIFY_HANDLE_CURRENT_TIME],
       },
       {
         0, /* No more characteristics in this service */
@@ -246,6 +239,10 @@ static const struct ble_gatt_svc_def ble_gatt_services[] =
   },
 };
 
+uint16_t ble_gatt_svr_get_notify_handle(ble_notify_handle_t handle)
+{
+  return blr_gatt_notify_handle[handle];
+}
 
 STATUS ble_gatt_srv_initialize(void)
 {
