@@ -292,23 +292,118 @@ static void zigbee_check_frame(zigbee_decodedFrame* decodedFrame)
   }
 }
 
+typedef enum
+{
+  TRYING_JOINING,
+  IN_SLEEP,
+  SENDING_DATA
+} tx_state_t;
+
+tx_state_t zigbee_txState = TRYING_JOINING;
+
+uint32_t zigbee_get_wait_tick(tx_state_t state)
+{
+  uint32_t waitTime;
+  waitTime = 0;
+  switch (state)
+  {
+    default:
+    case TRYING_JOINING:
+      waitTime = OS_SEC_TO_TICK(1);
+      break;
+
+    case IN_SLEEP:
+      waitTime = OS_SEC_TO_TICK(90);
+      break;
+
+    case SENDING_DATA:
+      waitTime = OS_MSEC_TO_TICK(300);
+      break;
+  }
+
+  return waitTime;
+}
+
+void zigbee_wake_up(void)
+{
+  log_info_print("ZB wake up");
+  gpio_set_level(XBEE_SLEEP_RQ, false);
+}
+
+void zigbee_sleep(void)
+{
+  gpio_set_level(XBEE_SLEEP_RQ, true);
+  log_info_print("ZB sleep");
+}
 
 void zigbee_task_tx ( void* arg )
 {
   UNUSED(arg);
   zb_payload_frame* pMsg;
+  BaseType_t rc;
   //  static uint8_t counter = 0;
+
+  uint32_t waitTime;
+  zigbee_txState = TRYING_JOINING;
 
   while (1)
   {
-    xQueueReceive(zb_txQueue, (void*) &pMsg, OS_WAIT_FOREVER);
-    if (zb_joined_status == ZB_STATUS_JOINED)
+    waitTime = zigbee_get_wait_tick(zigbee_txState);
+    rc = xQueueReceive(zb_txQueue, (void*) &pMsg, waitTime);
+    if (rc == pdTRUE)
     {
-      zb_build_and_send_msg(pMsg);
-    }
-    zb_free_msg(pMsg);
+      switch (zigbee_txState)
+      {
+        case IN_SLEEP:
+          //WAKE UP
+          zigbee_wake_up();
+          thread_msleep(300);
+          zigbee_txState = SENDING_DATA;
+          break;
 
-    /*thread_sleep(10);
+        case SENDING_DATA:
+        case TRYING_JOINING:
+          break;
+
+        default:
+          break;
+      }
+
+      if (zb_joined_status == ZB_STATUS_JOINED)
+      {
+        zb_build_and_send_msg(pMsg);
+        zigbee_txState = SENDING_DATA;
+      }
+      zb_free_msg(pMsg);
+    }
+    else
+    {
+      switch (zigbee_txState)
+      {
+        case IN_SLEEP:
+          //WAKE UP
+          zigbee_wake_up();
+          zigbee_txState = SENDING_DATA;
+          break;
+
+        case SENDING_DATA:
+          //shtudown
+          zigbee_sleep();
+          zigbee_txState = IN_SLEEP;
+          break;
+
+        case TRYING_JOINING:
+          if (zb_joined_status == ZB_STATUS_JOINED)
+            zigbee_txState = SENDING_DATA;
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    /*
+    thread_sleep(10);
     pMsg = zb_allocate_msg();
 
     pMsg->dataType = SENSOR_PROTOCOL_DBG_TYPE;
@@ -319,7 +414,8 @@ void zigbee_task_tx ( void* arg )
 
     zb_build_and_send_msg(pMsg);
     log_info_print("zb_msg %d", pMsg->dataType);
-    zb_free_msg(pMsg);*/
+    zb_free_msg(pMsg);
+    */
 
   }
 }
