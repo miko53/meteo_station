@@ -7,6 +7,7 @@
 #include "data_ope_config.h"
 #include "libs.h"
 #include "ble.h"
+#include "zigbee.h"
 
 #define CTRL_NB_MSG       (20)
 
@@ -140,6 +141,7 @@ void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
   }
 
   ble_notify_new_data(date_ope_config_get_data_type(indexSensor), pData);
+  zigbee_send_sensor_data(date_ope_config_get_data_type(indexSensor), pData);
 }
 
 static void ctrl_log_data(data_msg_t* pDataMsg)

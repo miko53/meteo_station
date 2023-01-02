@@ -37,6 +37,8 @@ static void zigbee_task_tx(void* arg);
 static bool zigbee_on_receive_data(uint8_t* data, uint32_t size, zigbee_decodedFrame* decodedFrame);
 static void zigbee_display_frame(uint8_t* data, uint32_t len);
 static void zigbee_check_frame(zigbee_decodedFrame* decodedFrame);
+static uint8_t zigbee_appendChecksum(uint8_t* buffer, uint8_t* sizeFrame);
+static void zb_build_and_send_msg(zb_payload_frame* pMsg);
 
 STATUS zigbee_init(void)
 {
@@ -290,19 +292,23 @@ static void zigbee_check_frame(zigbee_decodedFrame* decodedFrame)
   }
 }
 
-static uint8_t zigbee_appendChecksum(uint8_t* buffer, uint8_t* sizeFrame);
-static void zb_build_and_send_msg(zb_payload_frame* pMsg);
 
 void zigbee_task_tx ( void* arg )
 {
   UNUSED(arg);
-
   zb_payload_frame* pMsg;
-  static uint8_t counter = 0;
+  //  static uint8_t counter = 0;
 
   while (1)
   {
-    thread_sleep(10);
+    xQueueReceive(zb_txQueue, (void*) &pMsg, OS_WAIT_FOREVER);
+    if (zb_joined_status == ZB_STATUS_JOINED)
+    {
+      zb_build_and_send_msg(pMsg);
+    }
+    zb_free_msg(pMsg);
+
+    /*thread_sleep(10);
     pMsg = zb_allocate_msg();
 
     pMsg->dataType = SENSOR_PROTOCOL_DBG_TYPE;
@@ -312,15 +318,110 @@ void zigbee_task_tx ( void* arg )
     pMsg->dbgFrame.v3 = counter;
 
     zb_build_and_send_msg(pMsg);
-    /*
-    xQueueReceive(zb_txQueue, (void*) &pMsg, OS_WAIT_FOREVER);
-    if (zb_joined_status == ZB_STATUS_JOINED)
-    {
-
-    }*/
     log_info_print("zb_msg %d", pMsg->dataType);
-    zb_free_msg(pMsg);
+    zb_free_msg(pMsg);*/
+
   }
+}
+
+static uint8_t zigbee_get_sensor_type(data_type_t indexSensor)
+{
+  uint8_t s;
+  s = -1;
+  switch (indexSensor)
+  {
+    case TEMPERATURE:
+      s = SENSOR_HYT221_TEMP; //TODO
+      break;
+
+    case HUMIDITY:
+      s = SENSOR_HYT221_HUM; //TODO
+      break;
+
+    case PRESSURE:
+      s = SENSOR_PRESSURE;
+      break;
+
+    case RAIN:
+      s = SENSOR_RAINFALL;
+      break;
+
+    case WIND_DIR:
+      s = SENSOR_WIND_DIR;
+      break;
+
+    case WIND_SPEED:
+      s = SENSOR_WIND_SPEED;
+      break;
+
+    default:
+      break;
+  }
+  return s;
+}
+
+static uint16_t zigbee_convert_data(data_type_t indexSensor, variant_t* pData)
+{
+  uint16_t d;
+  d = -1;
+  switch (indexSensor)
+  {
+    case TEMPERATURE:
+    case HUMIDITY:
+    case PRESSURE:
+    default:
+      break;
+
+    case RAIN:
+      d = pData->f32;
+      break;
+
+    case WIND_DIR:
+      d = pData->i32 * 10;
+      break;
+
+    case WIND_SPEED:
+      d = pData->f32 * 10;
+      break;
+  }
+  return d;
+}
+
+STATUS zigbee_send_sensor_data(data_type_t indexSensor, variant_t* pData)
+{
+  STATUS s;
+  static uint8_t counter = 0;
+  s = STATUS_OK;
+  zb_payload_frame* pMsg;
+  pMsg = zb_allocate_msg();
+  if (pMsg != NULL)
+  {
+    pMsg->counter = counter++;
+    pMsg->dataType = SENSOR_PROTOCOL_DATA_TYPE;
+    pMsg->frame.sensorDataNumber = 1;
+    pMsg->frame.sensors[0].status = 0x03;
+    pMsg->frame.sensors[0].type = zigbee_get_sensor_type(indexSensor);
+    uint16_t data;
+    data =  zigbee_convert_data(indexSensor, pData);
+    pMsg->frame.sensors[0].data = data;
+
+    s = zigbee_send_data(pMsg);
+    if (s != STATUS_OK)
+      zb_free_msg(pMsg);
+  }
+  return s;
+}
+
+STATUS zigbee_send_data(zb_payload_frame* pMsg)
+{
+  STATUS s;
+  BaseType_t rc;
+  s = STATUS_ERROR;
+  rc = xQueueSend(zb_txQueue, &pMsg, 0);
+  if (rc == pdTRUE)
+    s = STATUS_OK;
+
+  return s;
 }
 
 void zb_build_and_send_msg(zb_payload_frame* pMsg)
@@ -350,6 +451,14 @@ void zb_build_and_send_msg(zb_payload_frame* pMsg)
   switch (pMsg->dataType)
   {
     case SENSOR_PROTOCOL_DATA_TYPE:
+      buffer[size++] = pMsg->frame.sensorDataNumber;
+      for (uint32_t i = 0; i < pMsg->frame.sensorDataNumber; i++)
+      {
+        buffer[size++] = pMsg->frame.sensors[i].type;
+        buffer[size++] = pMsg->frame.sensors[i].status;
+        buffer[size++] = (pMsg->frame.sensors[i].data & 0xFF00) >> 8;
+        buffer[size++] = (pMsg->frame.sensors[i].data & 0x00FF);
+      }
       break;
 
     case SENSOR_PROTOCOL_DBG_TYPE:
@@ -361,17 +470,15 @@ void zb_build_and_send_msg(zb_payload_frame* pMsg)
       break;
   }
 
+  //append size
   buffer[1] = ((size - ZB_HEADER_SIZE) & 0xFF00) >> 8;
   buffer[2] = ((size - ZB_HEADER_SIZE) & 0x00FF) >> 0;
 
   uint8_t frameSize = size;
   frameSize = zigbee_appendChecksum(buffer, &frameSize);
 
-  int len = uart_write_bytes(ZB_UART_PORT_NUM, buffer, frameSize);
-
+  uart_write_bytes(ZB_UART_PORT_NUM, buffer, frameSize);
   zigbee_display_frame(buffer, frameSize);
-
-  log_info_print("len %d", len);
 }
 
 static uint8_t zigbee_appendChecksum(uint8_t* buffer, uint8_t* sizeFrame)
