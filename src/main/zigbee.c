@@ -387,7 +387,7 @@ void zigbee_task_tx ( void* arg )
           break;
 
         case SENDING_DATA:
-          //shtudown
+          //shutdown
           zigbee_sleep();
           zigbee_txState = IN_SLEEP;
           break;
@@ -492,14 +492,15 @@ STATUS zigbee_send_sensor_data(data_type_t indexSensor, variant_t* pData)
   pMsg = zb_allocate_msg();
   if (pMsg != NULL)
   {
+    memset(pMsg, 0, sizeof(zb_payload_frame));
     pMsg->counter = counter++;
     pMsg->dataType = SENSOR_PROTOCOL_DATA_TYPE;
-    pMsg->frame.sensorDataNumber = 1;
-    pMsg->frame.sensors[0].status = 0x03;
-    pMsg->frame.sensors[0].type = zigbee_get_sensor_type(indexSensor);
+    pMsg->frame.sensorDataNumber = 3; //NOTE TODO only 3 type currently managed NB_DATA_TYPE;
+    pMsg->frame.sensors[indexSensor].status = 0x03;
+    pMsg->frame.sensors[indexSensor].type = zigbee_get_sensor_type(indexSensor);
     uint16_t data;
     data =  zigbee_convert_data(indexSensor, pData);
-    pMsg->frame.sensors[0].data = data;
+    pMsg->frame.sensors[indexSensor].data = data;
 
     s = zigbee_send_data(pMsg);
     if (s != STATUS_OK)
@@ -520,7 +521,7 @@ STATUS zigbee_send_data(zb_payload_frame* pMsg)
   return s;
 }
 
-void zb_build_and_send_msg(zb_payload_frame* pMsg)
+static void zb_build_and_send_msg(zb_payload_frame* pMsg)
 {
   uint8_t buffer[ZB_BUFFER_SIZE];
   uint32_t size = 0;

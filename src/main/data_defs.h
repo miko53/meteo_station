@@ -5,11 +5,11 @@
 
 typedef enum
 {
-  TEMPERATURE,
-  HUMIDITY,
   RAIN,
   WIND_SPEED,
   WIND_DIR,
+  TEMPERATURE,
+  HUMIDITY,
   PRESSURE,
   NB_DATA_TYPE
 } data_type_t;
