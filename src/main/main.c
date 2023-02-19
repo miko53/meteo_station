@@ -149,12 +149,15 @@ void app_init(void)
       panic();
     }
   }
-  
-  s = zigbee_init();
-  if (s != STATUS_OK)
+
+  if (nvstorage_get_zb_state() == true)
   {
-    log_error_print("zigbee failed!");
-    panic();
+    s = zigbee_init();
+    if (s != STATUS_OK)
+    {
+      log_error_print("zigbee failed!");
+      panic();
+    }
   }
 }
 

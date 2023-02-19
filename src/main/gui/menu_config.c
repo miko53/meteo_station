@@ -30,6 +30,11 @@ static void config_ble_display(screen_t* screen);
 static void config_ble_on_cmd(screen_t* screen);
 static void config_ble_on_clk_btn(screen_t* screen);
 static void config_ble_on_enter(screen_t* screen);
+static void menu_display_config_activate_set_zb_screen(screen_t* screen);
+static void config_zb_on_clk_btn(screen_t* screen);
+static void config_zb_on_cmd(screen_t* screen);
+static void config_zb_on_enter(screen_t* screen);
+static void config_zb_display(screen_t* screen);
 
 screen_t config_screen =
 {
@@ -140,7 +145,7 @@ screen_t config_ble_screen =
   .display = screen_generic_display,
   .on_cmd = menu_display_config_activate_set_ble_screen,
   .on_cmd_long_press = menu_display_config_screen,
-  .on_plus = menu_date_display_date_screen,
+  .on_plus = menu_display_config_activate_zb_screen,
   .on_minus = menu_display_config_activate_filelog_screen,
   .on_enter = NULL,
   .on_exit = NULL,
@@ -216,4 +221,89 @@ void config_ble_on_clk_btn(screen_t* screen)
     config_ble_display(screen);
   }
 }
+
+screen_t config_zb_screen =
+{
+  .line_1 = "CONFIGURATION   ",
+  .line_2 = "SET ZIGBEE...",
+  .display = screen_generic_display,
+  .on_cmd = menu_display_config_activate_set_zb_screen,
+  .on_cmd_long_press = menu_display_config_screen,
+  .on_plus = menu_date_display_date_screen,
+  .on_minus = menu_display_config_activate_ble_screen,
+  .on_enter = NULL,
+  .on_exit = NULL,
+};
+
+void menu_display_config_activate_zb_screen(screen_t* screen)
+{
+  screen_change_to(&config_zb_screen);
+}
+
+screen_t config_zb_set_screen =
+{
+  .line_1 = "SET ZIGBEE...",
+  .line_2 = NULL,
+  .display = config_zb_display,
+  .on_cmd = config_zb_on_cmd,
+  .on_cmd_long_press = menu_display_config_activate_zb_screen,
+  .on_plus = config_zb_on_clk_btn, //menu_date_display_date_screen,
+  .on_minus = config_zb_on_clk_btn, //menu_date_display_time_screen,
+  .on_enter = config_zb_on_enter,
+  .on_exit = NULL,
+};
+
+static void menu_display_config_activate_set_zb_screen(screen_t* screen)
+{
+  screen_change_to(&config_zb_set_screen);
+}
+
+void config_zb_display(screen_t* screen)
+{
+  ser_lcd_write_line(0, screen->line_1);
+
+  bool isActivated;
+  isActivated = nvstorage_get_zb_state();
+
+  snprintf(config_filelog_status, FILELOG_STATUS_SIZE, "             %s", isActivated ? "ON " : "OFF");
+  ser_lcd_write_line(1, config_filelog_status);
+  if (config_filelog_state == CONFIG_FILELOG_MODIFY)
+  {
+    ser_lcd_set_cursor(1, 13);
+    ser_lcd_cursor_on();
+    ser_lcd_blink_on();
+  }
+  else
+  {
+    ser_lcd_cursor_off();
+    ser_lcd_blink_off();
+  }
+}
+
+void config_zb_on_enter(screen_t* screen)
+{
+  config_filelog_on_enter(screen);
+}
+
+void config_zb_on_cmd(screen_t* screen)
+{
+  if (config_filelog_state == CONFIG_FILELOG_MODIFY)
+    config_filelog_state = CONFIG_FILELOG_DISPLAY;
+  else
+    config_filelog_state = CONFIG_FILELOG_MODIFY;
+
+  config_zb_display(screen);
+}
+
+void config_zb_on_clk_btn(screen_t* screen)
+{
+  if (config_filelog_state == CONFIG_FILELOG_MODIFY)
+  {
+    bool isActivated;
+    isActivated = nvstorage_get_zb_state();
+    nvstorage_set_zb_state(!isActivated);
+    config_zb_display(screen);
+  }
+}
+
 

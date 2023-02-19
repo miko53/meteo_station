@@ -30,6 +30,8 @@ static QueueHandle_t zb_msgAllocatedHandle;
 static uint8_t zb_rx_buffer[ZB_BUFFER_SIZE];
 static uint32_t zb_rx_size;
 static zb_status_t zb_joined_status;
+static bool zb_activated;
+
 
 static STATUS zb_pre_allocate_msg(QueueHandle_t* msgReserveQueue);
 static void zigbee_task_rx(void* arg);
@@ -118,7 +120,16 @@ STATUS zigbee_init(void)
     io_configure_output(XBEE_RESET, true);
   }
 
-  return STATUS_OK;
+  STATUS s;
+  if (rc == ESP_OK)
+  {
+    zb_activated = true;
+    s = STATUS_OK;
+  }
+  else
+    s = STATUS_ERROR;
+
+  return s;
 }
 
 static STATUS zb_pre_allocate_msg(QueueHandle_t* msgReserveQueue)
@@ -486,25 +497,30 @@ static uint16_t zigbee_convert_data(data_type_t indexSensor, variant_t* pData)
 STATUS zigbee_send_sensor_data(data_type_t indexSensor, variant_t* pData)
 {
   STATUS s;
-  static uint8_t counter = 0;
-  s = STATUS_OK;
-  zb_payload_frame* pMsg;
-  pMsg = zb_allocate_msg();
-  if (pMsg != NULL)
-  {
-    memset(pMsg, 0, sizeof(zb_payload_frame));
-    pMsg->counter = counter++;
-    pMsg->dataType = SENSOR_PROTOCOL_DATA_TYPE;
-    pMsg->frame.sensorDataNumber = 3; //NOTE TODO only 3 type currently managed NB_DATA_TYPE;
-    pMsg->frame.sensors[indexSensor].status = 0x03;
-    pMsg->frame.sensors[indexSensor].type = zigbee_get_sensor_type(indexSensor);
-    uint16_t data;
-    data =  zigbee_convert_data(indexSensor, pData);
-    pMsg->frame.sensors[indexSensor].data = data;
+  s = STATUS_ERROR;
 
-    s = zigbee_send_data(pMsg);
-    if (s != STATUS_OK)
-      zb_free_msg(pMsg);
+  if (zb_activated == true)
+  {
+    static uint8_t counter = 0;
+    s = STATUS_OK;
+    zb_payload_frame* pMsg;
+    pMsg = zb_allocate_msg();
+    if (pMsg != NULL)
+    {
+      memset(pMsg, 0, sizeof(zb_payload_frame));
+      pMsg->counter = counter++;
+      pMsg->dataType = SENSOR_PROTOCOL_DATA_TYPE;
+      pMsg->frame.sensorDataNumber = 3; //NOTE TODO only 3 type currently managed NB_DATA_TYPE;
+      pMsg->frame.sensors[indexSensor].status = 0x03;
+      pMsg->frame.sensors[indexSensor].type = zigbee_get_sensor_type(indexSensor);
+      uint16_t data;
+      data =  zigbee_convert_data(indexSensor, pData);
+      pMsg->frame.sensors[indexSensor].data = data;
+
+      s = zigbee_send_data(pMsg);
+      if (s != STATUS_OK)
+        zb_free_msg(pMsg);
+    }
   }
   return s;
 }

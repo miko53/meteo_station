@@ -12,6 +12,8 @@ extern bool nvstorage_get_sdcard_log_state(void);
 extern STATUS nvstorage_set_sdcard_log_state(bool bState);
 extern bool nvstorage_get_ble_state(void);
 extern STATUS nvstorage_set_ble_state(bool bState);
+extern bool nvstorage_get_zb_state(void);
+extern STATUS nvstorage_set_zb_state(bool bState);
 
 
 #ifdef __cplusplus
