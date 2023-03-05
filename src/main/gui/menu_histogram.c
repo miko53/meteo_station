@@ -50,32 +50,6 @@ static int32_t menu_histo_current_item;
 static char line_1[STRING_SIZE];
 static char line_2[STRING_SIZE];
 
-
-const char* sensor_name[5] =
-{
-  "Temp.",
-  "Humd.",
-  "Precip.",
-  "Vit. vent",
-  "Dir. vent",
-};
-
-const char* sensor_unit[5] =
-{
-  "degC",
-  "%H",
-  "mm",
-  "km/h",
-  "",
-};
-
-const char* period_unit[3] =
-{
-  "hrs",
-  "jrs",
-  "mois",
-};
-
 static void menu_histo_no_data(data_operation_t* currentOpe)
 {
   const char* pSensorName = sensor_name[currentOpe->sensor];

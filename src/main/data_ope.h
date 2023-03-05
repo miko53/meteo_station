@@ -27,6 +27,8 @@ typedef enum
   //BY_YEAR
 } fixed_period_unit;
 
+extern const char* period_unit[3];
+
 typedef struct
 {
   uint32_t period;

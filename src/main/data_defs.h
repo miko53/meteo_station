@@ -14,6 +14,10 @@ typedef enum
   NB_DATA_TYPE
 } data_type_t;
 
+extern const char* sensor_name[NB_DATA_TYPE]; 
+extern const char* sensor_unit[NB_DATA_TYPE];
+
+
 typedef struct
 {
   data_type_t sensor;

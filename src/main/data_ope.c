@@ -24,6 +24,13 @@ static bool data_ope_is_hour_diff(struct tm* newDate, struct tm* previousDate, i
 static bool data_ope_is_day_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 static bool data_ope_is_month_diff(struct tm* newDate, struct tm* previousDate, int32_t* diff);
 
+const char* period_unit[3] =
+{
+  "hrs",
+  "jrs",
+  "mois",
+};
+
 STATUS data_ope_init(data_ope_cnf* pConfig)
 {
   STATUS s;
