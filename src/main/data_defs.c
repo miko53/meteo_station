@@ -13,7 +13,7 @@ const char* sensor_name[NB_DATA_TYPE] =
 const char* sensor_unit[NB_DATA_TYPE] =
 {
   "mm",
-  "km/h",
+  "m/s",
   "",
   "degC",
   "%H",
