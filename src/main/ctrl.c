@@ -73,7 +73,7 @@ static void ctrl_task(void* arg)
     }
     else
     {
-      log_dbg_print("Timeout");
+      //log_dbg_print("Timeout");
     }
   }
 }

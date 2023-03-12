@@ -47,6 +47,10 @@ STATUS anemometer_init(QueueHandle_t queueData)
   return s;
 }
 
+#ifdef SIMULATED_DATA
+float windspeed_simulated;
+#endif /* SIMULATED_DATA */
+
 static void anemometer_isr_handler(void* arg)
 {
   UNUSED(arg);
@@ -65,7 +69,14 @@ static void anemometer_do_calcul( TimerHandle_t xTimer )
   {
     data_msg_t msg;
     msg.sensor = WIND_SPEED;
-    variant_f32(&msg.value, count * ANEMOMETER_CONVERTER);
+    float v;
+#ifdef SIMULATED_DATA
+    windspeed_simulated += 0.2;
+    v = windspeed_simulated;
+#else
+    v = count * ANEMOMETER_CONVERTER;
+#endif /* SIMULATED_DATA */
+    variant_f32(&msg.value, v);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }

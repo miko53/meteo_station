@@ -53,6 +53,10 @@ static void rainmeter_isr_handler(void* arg)
   atomic_add(&rainmeter_count, 1);
 }
 
+#ifdef SIMULATED_DATA
+float rain_simulated;
+#endif /* SIMULATED_DATA */
+
 static void rainmeter_do_calcul( TimerHandle_t xTimer )
 {
   UNUSED(xTimer);
@@ -63,8 +67,17 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
   if (ctrl_data_queue != NULL)
   {
     data_msg_t msg;
+    float v;
     msg.sensor = RAIN;
-    variant_f32(&msg.value, count * RAINMETER_CONVERTER);
+
+#ifdef SIMULATED_DATA
+    rain_simulated += 0.1;
+    v = rain_simulated;
+#else
+    v = count * RAINMETER_CONVERTER;
+#endif /* SIMULATED_DATA */
+
+    variant_f32(&msg.value, v);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }

@@ -29,9 +29,9 @@
 #define XBEE_RX                    (19)
 
 //in second
-#define ANEMOMETER_WAIT_TIME       (10)
-#define WINDDIR_WAIT_TIME          (10)
-#define RAINMETER_WAIT_TIME        (10) //  (15*60) //15 min
+#define ANEMOMETER_WAIT_TIME       (90)
+#define WINDDIR_WAIT_TIME          (90)
+#define RAINMETER_WAIT_TIME        (90)
 
 #define SENSOR_INDEX_SLIDE_RAIN_FALL     (0)
 #define SENSOR_INDEX_SLIDE_WIND_SPEED    (2)

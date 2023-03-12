@@ -165,6 +165,10 @@ void print_direction(winddir_direction_t dir)
   log_info_print("Dir: %s", winddir_direction(dir));
 }
 
+#ifdef SIMULATED_DATA
+float winddir_simulated;
+#endif /* SIMULATED_DATA */
+
 void winddir_do_calcul(TimerHandle_t xTimer)
 {
   uint32_t v;
@@ -196,7 +200,17 @@ void winddir_do_calcul(TimerHandle_t xTimer)
   {
     data_msg_t msg;
     msg.sensor = WIND_DIR;
-    variant_u32(&msg.value, winddir_get_angle(direction));
+    uint32_t v;
+
+#ifdef SIMULATED_DATA
+    winddir_simulated += 2;
+    winddir_simulated %= 360;
+    v = rain_simulated;
+#else
+    v = winddir_get_angle(direction);
+#endif /* SIMULATED_DATA */
+
+    variant_u32(&msg.value, v);
     xQueueSend(ctrl_data_queue, &msg, OS_WAIT_FOREVER);
   }
 }
