@@ -71,7 +71,7 @@ static void rainmeter_do_calcul( TimerHandle_t xTimer )
     msg.sensor = RAIN;
 
 #ifdef SIMULATED_DATA
-    rain_simulated += 0.1;
+    rain_simulated += 1;
     v = rain_simulated;
 #else
     v = count * RAINMETER_CONVERTER;

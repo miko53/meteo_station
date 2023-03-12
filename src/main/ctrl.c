@@ -17,8 +17,10 @@ static QueueHandle_t ctrl_dataReception;
 static void ctrl_task(void* arg);
 static void ctrl_log_data(data_msg_t* pDataMsg);
 static void ctrl_display_data_reception(data_msg_t* pDataMsg);
+static void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, data_type_t dataType,
+                                   variant_t* pData);
 
-void insert_calculated_data(uint32_t indexSensor, variant_t* pData);
+static void insert_calculated_data(uint32_t indexSensor, variant_t* pData);
 
 STATUS ctrl_init(void)
 {
@@ -78,11 +80,33 @@ static void ctrl_task(void* arg)
   }
 }
 
+static void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
+{
+  log_info_print("insert calculated data (%d)", indexSensor);
+  STATUS s;
+  filelog_msg* pMsg;
+  pMsg = filelog_allocate_msg();
+  if (pMsg != NULL)
+  {
+    data_type_t dataType = date_ope_config_get_data_type(indexSensor);
+    ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, true, dataType, pData);
+    s = filelog_write(pMsg);
+    if (s != STATUS_OK)
+      log_info_print("error trying to send msg\n");
+  }
+  else
+  {
+    log_info_print("error trying to allocate msg\n");
+  }
 
-void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, uint32_t indexSensor, variant_t* pData)
+  ble_notify_new_data(date_ope_config_get_data_type(indexSensor), pData);
+  zigbee_send_sensor_data(date_ope_config_get_data_type(indexSensor), pData);
+}
+
+static void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, data_type_t dataType, variant_t* pData)
 {
   char* typeDataStr;
-  switch (indexSensor)
+  switch (dataType)
   {
     case RAIN:
       typeDataStr = "rain";
@@ -120,28 +144,6 @@ void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, uint32
     snprintf(string, size - 1, "%c;%s;%.2d:%.2d:%.2d;%f\n", computed, typeDataStr, dateTime.tm_hour, dateTime.tm_min,
              dateTime.tm_sec, pData->f32);
   }
-}
-
-void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
-{
-  log_info_print("insert calculated data (%d)", indexSensor);
-  STATUS s;
-  filelog_msg* pMsg;
-  pMsg = filelog_allocate_msg();
-  if (pMsg != NULL)
-  {
-    ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, true, indexSensor, pData);
-    s = filelog_write(pMsg);
-    if (s != STATUS_OK)
-      log_info_print("error trying to send msg\n");
-  }
-  else
-  {
-    log_info_print("error trying to allocate msg\n");
-  }
-
-  ble_notify_new_data(date_ope_config_get_data_type(indexSensor), pData);
-  zigbee_send_sensor_data(date_ope_config_get_data_type(indexSensor), pData);
 }
 
 static void ctrl_log_data(data_msg_t* pDataMsg)
