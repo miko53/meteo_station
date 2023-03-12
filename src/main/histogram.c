@@ -37,7 +37,7 @@ STATUS histogram_get(histogram_t* h, uint32_t index, variant_t* v)
     {
       s = STATUS_OK;
       uint32_t index_to_take = (h->current_index - 1 - index) % h->nbitems;
-      fprintf(stdout, "index_to_take = %d\n", index_to_take);
+      //fprintf(stdout, "index_to_take = %d\n", index_to_take);
       *v = h->datas[index_to_take];
     }
   }

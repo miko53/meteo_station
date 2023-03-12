@@ -216,29 +216,48 @@ static int ble_gap_event(struct ble_gap_event* event, void* arg)
       break;
 
     default:
-      log_info_print("unknown event : %d", event->type);
+      log_dbg_print("unknown event : %d", event->type);
       break;
   }
 
   return 0;
 }
 
-const ble_notify_handle_t ble_data_def_to_handle[] =
+
+typedef struct
 {
-  NOTIFY_HANDLE_TEMPERATURE,
-  NOTIFY_HANDLE_HUMIDITY,
-  NOTIFY_HANDLE_RAINFALL,
-  NOTIFY_HANDLE_TRUE_WIND_SPEED,
-  NOTIFY_HANDLE_TRUE_WIND_DIR,
-  NOTIFY_HANDLE_PRESSURE
+  data_type_t sensorType;
+  ble_notify_handle_t bleHandle;
+} sensorType_bleHandle_relationship_t;
+
+const sensorType_bleHandle_relationship_t ble_data_def_to_handle[] =
+{
+  { .sensorType = TEMPERATURE, .bleHandle =  NOTIFY_HANDLE_TEMPERATURE },
+  { .sensorType = HUMIDITY, .bleHandle =  NOTIFY_HANDLE_HUMIDITY },
+  { .sensorType = RAIN, .bleHandle =  NOTIFY_HANDLE_RAINFALL },
+  { .sensorType = WIND_DIR, .bleHandle =  NOTIFY_HANDLE_TRUE_WIND_DIR },
+  { .sensorType = WIND_SPEED, .bleHandle =  NOTIFY_HANDLE_TRUE_WIND_SPEED },
+  { .sensorType = PRESSURE, .bleHandle =  NOTIFY_HANDLE_PRESSURE },
 };
+
+ble_notify_handle_t ble_get_handle_from_sensor_type(data_type_t sensorType)
+{
+  for (uint32_t i = 0; i < (sizeof(ble_data_def_to_handle) / sizeof(sensorType_bleHandle_relationship_t)); i++)
+  {
+    if (ble_data_def_to_handle[i].sensorType == sensorType)
+      return ble_data_def_to_handle[i].bleHandle;
+  }
+
+  log_warning_print("error association sensorType (%d), bleHandle\n", sensorType);
+  return -1;
+}
 
 static void ble_on_subcription(uint16_t attr_handle, bool bSubcribe)
 {
   for (uint32_t i = 0; i < NB_DATA_TYPE; i++)
   {
     ble_notify_handle_t nHandle;
-    nHandle = ble_data_def_to_handle[i];
+    nHandle = ble_get_handle_from_sensor_type(i);
     if (attr_handle == ble_gatt_svr_get_notify_handle(nHandle))
     {
       ble_connected[i] = bSubcribe;
@@ -262,7 +281,6 @@ STATUS ble_notify_new_data(data_type_t indexSensor, variant_t* pData)
   s = STATUS_OK;
   if (ble_connected[indexSensor] == true)
   {
-    log_info_print("send Data (%f)", pData->f32);
     switch (indexSensor)
     {
       case TEMPERATURE:
@@ -343,6 +361,5 @@ void ble_send_buffer_data(uint16_t handle, void* value, uint32_t size)
   struct os_mbuf* om;
   //int rc;
   om = ble_hs_mbuf_from_flat(value, size);
-  /*rc =*/
   ble_gattc_notify_custom(conn_handle, handle, om);
 }

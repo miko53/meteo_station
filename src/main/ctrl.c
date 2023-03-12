@@ -82,13 +82,14 @@ static void ctrl_task(void* arg)
 
 static void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
 {
-  log_info_print("insert calculated data (%d)", indexSensor);
+  log_dbg_print("insert calculated data (%d)", indexSensor);
+  data_type_t dataType = date_ope_config_get_data_type(indexSensor);
+
   STATUS s;
   filelog_msg* pMsg;
   pMsg = filelog_allocate_msg();
   if (pMsg != NULL)
   {
-    data_type_t dataType = date_ope_config_get_data_type(indexSensor);
     ctrl_build_datalog_msg(pMsg->data, FILELOG_STR_SIZE_MAX, true, dataType, pData);
     s = filelog_write(pMsg);
     if (s != STATUS_OK)
@@ -99,8 +100,8 @@ static void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
     log_info_print("error trying to allocate msg\n");
   }
 
-  ble_notify_new_data(date_ope_config_get_data_type(indexSensor), pData);
-  zigbee_send_sensor_data(date_ope_config_get_data_type(indexSensor), pData);
+  ble_notify_new_data(dataType, pData);
+  zigbee_send_sensor_data(dataType, pData);
 }
 
 static void ctrl_build_datalog_msg(char* string, uint32_t size, bool isComputed, data_type_t dataType, variant_t* pData)
@@ -175,15 +176,15 @@ static void ctrl_display_data_reception(data_msg_t* pDataMsg)
       break;
 
     case RAIN:
-      log_info_print("RAIN %f mm", pDataMsg->value.f32);
+      log_dbg_print("RAIN %f mm", pDataMsg->value.f32);
       break;
 
     case WIND_DIR:
-      log_info_print("WIND_DIR %d ", pDataMsg->value.i32);
+      log_dbg_print("WIND_DIR %d ", pDataMsg->value.i32);
       break;
 
     case WIND_SPEED:
-      log_info_print("WIND_SPEED %f m/s", pDataMsg->value.f32);
+      log_dbg_print("WIND_SPEED %f m/s", pDataMsg->value.f32);
       break;
 
     default:

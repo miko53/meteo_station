@@ -149,7 +149,7 @@ static void filelog_task(void* arg)
 
       if (isActivated)
       {
-        log_info_print("filelog msg reception '%s'", msg->data);
+        log_dbg_print("filelog msg reception '%s'", msg->data);
         pcf8523_get_date(&newDate);
         if (filelog_date_has_changed(&newDate, &currentDate))
         {

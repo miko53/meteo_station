@@ -71,7 +71,7 @@ static void anemometer_do_calcul( TimerHandle_t xTimer )
     msg.sensor = WIND_SPEED;
     float v;
 #ifdef SIMULATED_DATA
-    windspeed_simulated += 0.2;
+    windspeed_simulated += 0.3;
     v = windspeed_simulated;
 #else
     v = count * ANEMOMETER_CONVERTER;

@@ -156,7 +156,7 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t*
 
           if ((hasDiff) && ((uint32_t) diff >= pOperation->calcul_period.f_period.period))
           {
-            fprintf(stdout, "diff detected (index = %d) do operation on (%d nb Data)\n", index, data_samples[index].nbData);
+            //fprintf(stdout, "diff detected (index = %d) do operation on (%d nb Data)\n", index, data_samples[index].nbData);
             if (pOperation->operation == OPE_AVERAGE)
             {
               data_samples[index].temp.f32 /= data_samples[index].nbData;
@@ -176,10 +176,10 @@ void data_ope_do_calcul(uint32_t index, data_operation_t* pOperation, variant_t*
       data_ope_prepare_and_insert(index, pOperation, pSample);
 
       nbItems = pOperation->calcul_period.period_sec / pOperation->refresh_period_sec;
-      log_info_print("index = %d, nbItems = %d, nbData = %d", index, nbItems, data_samples[index].nbData);
+      //log_info_print("index = %d, nbItems = %d, nbData = %d", index, nbItems, data_samples[index].nbData);
       if (data_samples[index].nbData >= nbItems)
       {
-        fprintf(stdout, "do operation\n");
+        //fprintf(stdout, "do operation\n");
         if (pOperation->operation == OPE_AVERAGE)
         {
           data_samples[index].temp.f32 /= nbItems;
