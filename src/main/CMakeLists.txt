@@ -1,4 +1,9 @@
 
+option(SIMULATED_DATA OFF "simulate data")
+if(SIMULATED_DATA)
+add_definitions(-DSIMULATED_DATA)
+endif()
+
 if(UNIT_TEST)
 add_compile_definitions(UNIT_TEST)
 include_directories(include)

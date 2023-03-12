@@ -166,7 +166,7 @@ void print_direction(winddir_direction_t dir)
 }
 
 #ifdef SIMULATED_DATA
-float winddir_simulated;
+uint32_t winddir_simulated;
 #endif /* SIMULATED_DATA */
 
 void winddir_do_calcul(TimerHandle_t xTimer)
@@ -203,9 +203,10 @@ void winddir_do_calcul(TimerHandle_t xTimer)
     uint32_t v;
 
 #ifdef SIMULATED_DATA
+    UNUSED(direction);
     winddir_simulated += 2;
     winddir_simulated %= 360;
-    v = rain_simulated;
+    v = winddir_simulated;
 #else
     v = winddir_get_angle(direction);
 #endif /* SIMULATED_DATA */
