@@ -13,7 +13,7 @@
 
 #define FILELOG_DEFAULT_PERMISSION      (0775)
 #define FILELOG_SIZE_MAX                (256)
-#define FILELOG_NB_MAX_MSG              (5)
+#define FILELOG_NB_MAX_MSG              (30)
 
 static QueueHandle_t filelog_msgHandle = NULL;
 static TaskHandle_t filelog_taskHandle = NULL;
@@ -128,6 +128,7 @@ static void filelog_task(void* arg)
   bool isActivated;
 
   delay = OS_WAIT_FOREVER;
+  isPreviouslyActivated = false;
 
   while (1)
   {
@@ -162,7 +163,8 @@ static void filelog_task(void* arg)
         {
           fputs(msg->data, pCurrentFile);
           fflush( pCurrentFile);
-          fsync(fileno(pCurrentFile));
+          int fd = fileno(pCurrentFile);
+          fsync(fd);
         }
       }
 

@@ -97,7 +97,7 @@ static void insert_calculated_data(uint32_t indexSensor, variant_t* pData)
   }
   else
   {
-    log_info_print("error trying to allocate msg\n");
+    log_info_print("calculated_data: error trying to allocate msg\n");
   }
 
   ble_notify_new_data(dataType, pData);
@@ -161,7 +161,7 @@ static void ctrl_log_data(data_msg_t* pDataMsg)
   }
   else
   {
-    log_info_print("error trying to allocate msg\n");
+    log_info_print("ctr_log_data: error trying to allocate msg\n");
   }
 }
 
