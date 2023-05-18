@@ -5,8 +5,8 @@
 
 #define BUTTON_LONG_PRESS_DURATION        OS_MSEC_TO_TICK(1000)
 #define BUTTON_GPIO_INPUT_CMD                          (18)
-#define BUTTON_GPIO_INPUT_MINUS                        (10)
-#define BUTTON_GPIO_INPUT_PLUS                          (9)
+#define BUTTON_GPIO_INPUT_MINUS                         (9)
+#define BUTTON_GPIO_INPUT_PLUS                         (10)
 
 typedef struct
 {
