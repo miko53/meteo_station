@@ -6,7 +6,7 @@
 #include "data_defs.h"
 #include "config.h"
 
-#define RAINMETER_CONVERTER                           (0.3)  // 1 pulse => 0.3 mm
+#define RAINMETER_CONVERTER                           (0.2794)  // 1 pulse => 0.2794 mm
 
 static atomic_t rainmeter_count;
 static TimerHandle_t rainmeter_timer_handle;

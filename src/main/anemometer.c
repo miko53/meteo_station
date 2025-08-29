@@ -60,7 +60,7 @@ static void anemometer_isr_handler(void* arg)
 static void anemometer_do_calcul( TimerHandle_t xTimer )
 {
   UNUSED(xTimer);
-  int32_t count = atomic_get(&anemometer_count);
+  uint32_t count = atomic_get(&anemometer_count);
   atomic_set(&anemometer_count, 0);
   //log_info_print("count = %d => %f m/s (%f km/h)\n", count, count * ANEMOMETER_CONVERTER,
   //               count * ANEMOMETER_CONVERTER * 3.6);

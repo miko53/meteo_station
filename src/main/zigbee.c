@@ -480,7 +480,7 @@ static uint16_t zigbee_convert_data(data_type_t indexSensor, variant_t* pData)
       break;
 
     case RAIN:
-      d = pData->f32;
+      d = pData->f32 * 100;
       break;
 
     case WIND_DIR:
@@ -488,7 +488,7 @@ static uint16_t zigbee_convert_data(data_type_t indexSensor, variant_t* pData)
       break;
 
     case WIND_SPEED:
-      d = pData->f32 * 10;
+      d = pData->f32 * 100;
       break;
   }
   return d;
